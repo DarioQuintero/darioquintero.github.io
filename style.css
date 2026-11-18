@@ -221,6 +221,16 @@ main {
   --scratch-cover: #3c97d0;    /* color of the scratch-off layer */
 }
 
+/* Hidden while the thumbnails load, then faded in all at once
+   (scratcher.js adds "is-ready"). */
+.scratcher > * {
+  opacity: 0;
+  transition: opacity 0.3s;    /* fade-in length; 0s = appear instantly */
+}
+.scratcher.is-ready > * {
+  opacity: 1;
+}
+
 
 /* The grid of works underneath. Rows/cols are set by scratcher.js
    from the data-rows / data-cols in index.html. */

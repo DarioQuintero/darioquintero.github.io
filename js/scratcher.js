@@ -62,7 +62,7 @@ for (const work of shuffled.slice(0, rows * cols)) {
   cell.className = "scratch-cell";
   cell.href = `work.html?id=${work.id}`;
   cell.innerHTML = `
-    ${work.thumbnail ? `<img src="${work.thumbnail}" alt="${work.title}">` : `<div class="placeholder"></div>`}
+    ${work.thumbnail ? `<img src="${work.thumbnail}" alt="${work.title}" loading="eager" fetchpriority="high">` : `<div class="placeholder"></div>`}
     <span>${work.title}</span>
   `;
   grid.appendChild(cell);
@@ -252,6 +252,59 @@ function oklabBlur(source, sigma) {
   return out;
 }
 
+// Same hand-written blur, but in plain RGB (looks like the browser's own
+// blur). Used when BLUR_IN_OKLAB is off but the browser can't blur.
+function rgbBlur(source, sigma) {
+  const f = Math.max(1, Math.min(8, Math.floor(sigma / 3)));   // shrink factor
+  const W = source.width, H = source.height;
+  const w = Math.ceil(W / f), h = Math.ceil(H / f);
+  const px = source.getContext("2d").getImageData(0, 0, W, H).data;
+
+  const R = new Float32Array(w * h), G = new Float32Array(w * h), B = new Float32Array(w * h);
+  const count = new Float32Array(w * h);
+  for (let y = 0; y < H; y++) {
+    const row = ((y / f) | 0) * w;
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4, j = row + ((x / f) | 0);
+      R[j] += px[i]; G[j] += px[i + 1]; B[j] += px[i + 2];
+      count[j]++;
+    }
+  }
+  for (let j = 0; j < w * h; j++) { R[j] /= count[j]; G[j] /= count[j]; B[j] /= count[j]; }
+
+  const sig = sigma / f;
+  blurChannel(R, w, h, sig);
+  blurChannel(G, w, h, sig);
+  blurChannel(B, w, h, sig);
+
+  const out = document.createElement("canvas");
+  out.width = w;
+  out.height = h;
+  const octx = out.getContext("2d");
+  const img = octx.createImageData(w, h);
+  const d = img.data;
+  for (let j = 0; j < w * h; j++) {
+    d[j * 4] = R[j]; d[j * 4 + 1] = G[j]; d[j * 4 + 2] = B[j]; d[j * 4 + 3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  return out;
+}
+
+// Can this browser blur on a canvas (ctx.filter)? Safari can't yet, and
+// silently ignores it — so test it: blur one dot and see if it spreads.
+const CANVAS_BLUR_WORKS = (() => {
+  try {
+    const t = document.createElement("canvas");
+    t.width = t.height = 9;
+    const tc = t.getContext("2d");
+    tc.filter = "blur(2px)";
+    tc.fillRect(4, 4, 1, 1);
+    return tc.getImageData(0, 4, 1, 1).data[3] > 0 || tc.getImageData(2, 4, 1, 1).data[3] > 0;
+  } catch (e) {
+    return false;
+  }
+})();
+
 function drawCover(fast = false) {
   const w = canvas.width, h = canvas.height;
   if (!w || !h) return;
@@ -267,9 +320,11 @@ function drawCover(fast = false) {
   ctx.globalCompositeOperation = "source-over";
   ctx.clearRect(0, 0, w, h);
   let done = false;
-  if (BLUR_IN_OKLAB && !fast) {
+  // Hand-written blur: always in OKLab mode, and also whenever the browser
+  // can't blur by itself (Safari). Otherwise the browser's quick blur.
+  if ((BLUR_IN_OKLAB && !fast) || !CANVAS_BLUR_WORKS) {
     try {
-      const blurred = oklabBlur(sharp, COVER_BLUR * s);
+      const blurred = (BLUR_IN_OKLAB ? oklabBlur : rgbBlur)(sharp, COVER_BLUR * s);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(blurred, 0, 0, w, h);              // scale back up to full size
@@ -348,10 +403,20 @@ new ResizeObserver(sizeCanvas).observe(canvas);
 
 // Thumbnails and fonts load a moment after the page; redraw the cover
 // once they're ready so the blurred picture includes them.
-Promise.all([
+//
+// Until then the whole scratcher stays hidden, then fades in all at once
+// (see .scratcher.is-ready in style.css) — so the works never "pop in".
+// If something is very slow, it shows anyway after MAX_WAIT milliseconds.
+const MAX_WAIT = 3000;
+const ready = Promise.all([
   ...[...grid.querySelectorAll("img")].map((img) => img.decode().catch(() => {})),
   document.fonts ? document.fonts.ready : null,
-]).then(() => drawCover());
+]);
+const timeout = new Promise((resolve) => setTimeout(resolve, MAX_WAIT));
+Promise.race([ready, timeout]).then(() => {
+  drawCover();
+  scratcher.classList.add("is-ready");
+});
 
 // ── 3. The brush ─────────────────────────────────────────
 

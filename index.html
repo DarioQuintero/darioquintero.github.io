@@ -3,23 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Name</title>
+  <title>Dario Quintero</title>
   <link rel="stylesheet" href="style.css">
-  
 </head>
 <body>
-  <header>
-    <h1>Dario Quintero</h1>
-    <p>New Media Art & Game Programming</p>
+
+  <header class="site-header">
+    <a href="index.html" class="site-name">Dario Quintero</a>
+    <nav>
+      <a href="works.html">Work</a>
+      <a href="bio.html">Bio</a>
+      <a href="mailto:dario.r.quintero@gmail.com">Contact</a>
+    </nav>
   </header>
 
   <main>
-    <section id="projects">
-      <h2>Projects</h2>
-      <!-- Links to games, sketches, or web pieces -->
+    <!-- Intro: short text on the left, splash image on the right -->
+    <section class="intro">
+      <div class="intro-text">
+        <p>Hello, I'm Dario. I am a Senior at Carnegie Mellon University pursuing a degree in Computer Science and Fine Art. I make art, write code, and conduct explorations which involve the two.</p>
+      </div>
+
+      <!-- Scratch-off splash. Change data-rows / data-cols to change the
+           grid of works hidden underneath. It shows a random set of
+           (rows x cols) works from js/works.js on every load. -->
+      <div class="splash">
+        <div class="scratcher" data-rows="2" data-cols="3">
+          <div class="scratch-grid"></div>
+          <canvas class="scratch-cover grabbable" aria-label="Scratch to reveal works"></canvas>
+        </div>
+      </div>
     </section>
+    
   </main>
 
-  <script src="scripts.js"></script>
+  <footer class="site-footer">
+    <span>© 2026 Dario Quintero</span>
+    <nav>
+      <a href="mailto:you@example.com">Email</a>
+      <a href="https://www.instagram.com/">Instagram</a>
+    </nav>
+  </footer>
+
+  <script src="js/works.js"></script>
+  <script src="js/scratcher.js"></script>
 </body>
 </html>

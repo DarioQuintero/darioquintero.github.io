@@ -1,0 +1,449 @@
+// ─────────────────────────────────────────────────────────────
+// SCRATCHER
+// A lottery-ticket style scratch-off over a grid of works.
+//
+// The grid size comes from index.html:
+//   <div class="splash scratcher" data-rows="2" data-cols="3">
+// It shows a random set of (rows x cols) works from works.js,
+// different every time the page loads.
+//
+// Settings you might want to tweak:
+const COVER_TEXT = "Scratch me.";            // text printed on the cover ("" for none)
+const COVER_TEXT_COLOR = "#b3b3b3";
+
+// The cover is frosted glass: a blurred, gray-tinted view of the works
+// underneath. Scratching reveals them sharp.
+const COVER_BLUR = 16;             // how blurry the works look through the cover (screen pixels)
+const BLUR_IN_OKLAB = false;       // true = blur in the OKLab color space (smoother,
+                                  //   no muddy edges where colors meet);
+                                  //   false = the browser's ordinary RGB blur
+const COVER_TINT = .01;           // 0–1: how strongly it's tinted gray
+                                  //   (0 = no tint, 1 = solid gray, like before)
+
+// The scratch is a round brush whose size changes with how fast the
+// cursor moves (sizes in screen pixels):
+const BRUSH_MIN = 1;              // width when moving slowly
+const BRUSH_MAX = 20;              // width when moving fast
+const SPEED_FOR_MAX = 5;        // speed (pixels per millisecond) that reaches BRUSH_MAX.
+                                  //   lower = reaches max size more easily
+const FASTER_IS_BIGGER = true;    // false = fast strokes get thinner instead
+const SMOOTHING = 0.1;              // 0–1: how quickly the size follows speed changes
+                                  //   (lower = smoother, higher = more jittery)
+// The cover's tint color is --scratch-cover in style.css.
+// ─────────────────────────────────────────────────────────────
+
+// Everything below is wrapped in { } so its names (grid, canvas, …)
+// don't clash with the other script files on the page.
+{
+
+const scratcher = document.querySelector(".scratcher");
+const grid = scratcher.querySelector(".scratch-grid");
+const canvas = scratcher.querySelector(".scratch-cover");
+const ctx = canvas.getContext("2d");
+
+const rows = Number(scratcher.dataset.rows) || 2;
+const cols = Number(scratcher.dataset.cols) || 3;
+
+// ── 1. Build the grid of works underneath ───────────────────
+
+grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+// Pick a random set of works each time the page loads
+// (shuffle a copy of the list, then take the first rows x cols).
+const shuffled = [...works];
+for (let i = shuffled.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+}
+
+for (const work of shuffled.slice(0, rows * cols)) {
+  const cell = document.createElement("a");
+  cell.className = "scratch-cell";
+  cell.href = `work.html?id=${work.id}`;
+  cell.innerHTML = `
+    ${work.thumbnail ? `<img src="${work.thumbnail}" alt="${work.title}">` : `<div class="placeholder"></div>`}
+    <span>${work.title}</span>
+  `;
+  grid.appendChild(cell);
+}
+
+// Lines between the works, drawn ABOVE the cover so they always stay
+// sharp and can't be scratched away. It's an empty copy of the grid
+// whose cells draw their outlines into the 1px gaps.
+const lines = document.createElement("div");
+lines.className = "scratch-lines";
+lines.style.gridTemplateRows = grid.style.gridTemplateRows;
+lines.style.gridTemplateColumns = grid.style.gridTemplateColumns;
+for (let i = 0; i < rows * cols; i++) lines.appendChild(document.createElement("div"));
+scratcher.appendChild(lines);
+
+// ── 2. Draw the cover ───────────────────────────────────────
+//
+// Two canvases work together:
+//   mask    — invisible. Keeps track of what's still covered (opaque) and
+//             what's been scratched away (transparent).
+//   canvas  — what you see: a blurred, tinted picture of the works,
+//             cut to the shape of the mask.
+
+const mask = document.createElement("canvas");
+const mctx = mask.getContext("2d");
+
+// Screen pixels -> canvas pixels (canvases have more pixels than the
+// screen shows on high-res displays).
+function pixelScale() {
+  return canvas.width / canvas.getBoundingClientRect().width;
+}
+
+// Draw a sharp copy of the works grid onto a canvas, matching where
+// each cell, thumbnail and title sit on screen.
+function drawWorks(target) {
+  const tctx = target.getContext("2d");
+  const origin = canvas.getBoundingClientRect();
+  const s = pixelScale();
+  const place = (r) => [(r.left - origin.left) * s, (r.top - origin.top) * s, r.width * s, r.height * s];
+
+  // Background: the cells' color, not the line color — the lines are a
+  // separate sharp layer on top, so they're left out of the blur.
+  const firstCell = grid.children[0];
+  tctx.fillStyle = firstCell ? getComputedStyle(firstCell).backgroundColor : "#fff";
+  tctx.fillRect(0, 0, target.width, target.height);
+
+  for (const cell of grid.children) {
+    tctx.fillStyle = getComputedStyle(cell).backgroundColor;
+    tctx.fillRect(...place(cell.getBoundingClientRect()));
+
+    // Thumbnail, fitted the same way CSS shows it (whole image, bottom-left).
+    const img = cell.querySelector("img");
+    if (img && img.complete && img.naturalWidth) {
+      const [bx, by, bw, bh] = place(img.getBoundingClientRect());
+      const k = Math.min(bw / img.naturalWidth, bh / img.naturalHeight);
+      const w = img.naturalWidth * k, h = img.naturalHeight * k;
+      tctx.drawImage(img, bx, by + bh - h, w, h);
+    }
+
+    // Title
+    const label = cell.querySelector("span");
+    if (label) {
+      const lc = getComputedStyle(label);
+      const [lx, ly, , lh] = place(label.getBoundingClientRect());
+      tctx.fillStyle = lc.color;
+      tctx.font = `${lc.fontStyle} ${lc.fontWeight} ${parseFloat(lc.fontSize) * s}px ${lc.fontFamily}`;
+      tctx.textBaseline = "middle";
+      tctx.fillText(label.textContent, lx, ly + lh / 2);
+    }
+  }
+}
+
+// Repaint the visible cover: blurred works + gray tint, cut to the mask.
+// ── OKLab blur ──
+// Ordinary blurs average colors as raw RGB numbers, which makes muddy,
+// darker fringes where two colors meet. OKLab is a color space built
+// around how we see color, so averaging there blends smoothly. Steps:
+//   1. shrink the image (the blur hides the lower resolution, and it's
+//      much faster), then convert it to OKLab
+//   2. blur each of the three channels (a fast blur close to a Gaussian)
+//   3. convert back to RGB and scale up to full size
+
+// sRGB 0–255 → linear light, precomputed for speed.
+const SRGB_TO_LINEAR = new Float32Array(256).map((_, i) => {
+  const c = i / 255;
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+});
+function linearToSrgb(x) {
+  x = x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
+  return Math.max(0, Math.min(255, Math.round(x * 255)));
+}
+
+// Three box blurs in a row ≈ a Gaussian blur with standard deviation sigma.
+function boxSizesForGauss(sigma) {
+  const ideal = Math.sqrt((12 * sigma * sigma) / 3 + 1);
+  let lo = Math.floor(ideal);
+  if (lo % 2 === 0) lo--;
+  const hi = lo + 2;
+  const m = Math.round((12 * sigma * sigma - 3 * lo * lo - 12 * lo - 9) / (-4 * lo - 4));
+  return [0, 1, 2].map((i) => ((i < m ? lo : hi) - 1) / 2);   // radii
+}
+
+// One box blur pass along rows (horizontal) or columns (vertical);
+// pixels past the edge repeat the edge pixel, so edges don't fade.
+function boxPass(src, dst, w, h, r, horizontal) {
+  const lines = horizontal ? h : w, len = horizontal ? w : h;
+  const step = horizontal ? 1 : w, lineStep = horizontal ? w : 1;
+  const inv = 1 / (2 * r + 1);
+  for (let line = 0; line < lines; line++) {
+    const base = line * lineStep;
+    const at = (i) => src[base + Math.min(len - 1, Math.max(0, i)) * step];
+    let sum = 0;
+    for (let i = -r; i <= r; i++) sum += at(i);
+    for (let i = 0; i < len; i++) {
+      dst[base + i * step] = sum * inv;
+      sum += at(i + r + 1) - at(i - r);
+    }
+  }
+}
+
+function blurChannel(ch, w, h, sigma) {
+  const tmp = new Float32Array(ch.length);
+  for (const r of boxSizesForGauss(sigma)) {
+    if (r < 1) continue;
+    boxPass(ch, tmp, w, h, r, true);
+    boxPass(tmp, ch, w, h, r, false);
+  }
+}
+
+// Blur a canvas in OKLab. sigma is in that canvas's pixels.
+// Returns a new (smaller) canvas; draw it scaled up to full size.
+function oklabBlur(source, sigma) {
+  const f = Math.max(1, Math.min(8, Math.floor(sigma / 3)));   // shrink factor
+  const W = source.width, H = source.height;
+  const w = Math.ceil(W / f), h = Math.ceil(H / f);
+  const px = source.getContext("2d").getImageData(0, 0, W, H).data;
+
+  // 1. Shrink: average each f×f block in linear light (the physically
+  //    correct way to mix light), then convert each block to OKLab.
+  const R = new Float32Array(w * h), G = new Float32Array(w * h), Bl = new Float32Array(w * h);
+  const count = new Float32Array(w * h);
+  for (let y = 0; y < H; y++) {
+    const row = ((y / f) | 0) * w;
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4, j = row + ((x / f) | 0);
+      R[j] += SRGB_TO_LINEAR[px[i]];
+      G[j] += SRGB_TO_LINEAR[px[i + 1]];
+      Bl[j] += SRGB_TO_LINEAR[px[i + 2]];
+      count[j]++;
+    }
+  }
+  const L = new Float32Array(w * h), A = new Float32Array(w * h), B = new Float32Array(w * h);
+  for (let j = 0; j < w * h; j++) {
+    const r = R[j] / count[j], g = G[j] / count[j], b = Bl[j] / count[j];
+    const l_ = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    const m_ = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    const s_ = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    L[j] = 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_;
+    A[j] = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_;
+    B[j] = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_;
+  }
+
+  // 2. Blur each channel.
+  const sig = sigma / f;
+  blurChannel(L, w, h, sig);
+  blurChannel(A, w, h, sig);
+  blurChannel(B, w, h, sig);
+
+  // 3. OKLab → RGB.
+  const out = document.createElement("canvas");
+  out.width = w;
+  out.height = h;
+  const octx = out.getContext("2d");
+  const img = octx.createImageData(w, h);
+  const d = img.data;
+  for (let j = 0; j < w * h; j++) {
+    const l_ = L[j] + 0.3963377774 * A[j] + 0.2158037573 * B[j];
+    const m_ = L[j] - 0.1055613458 * A[j] - 0.0638541728 * B[j];
+    const s_ = L[j] - 0.0894841775 * A[j] - 1.2914855480 * B[j];
+    const l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_;
+    d[j * 4]     = linearToSrgb( 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s);
+    d[j * 4 + 1] = linearToSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
+    d[j * 4 + 2] = linearToSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s);
+    d[j * 4 + 3] = 255;
+  }
+  octx.putImageData(img, 0, 0);
+  return out;
+}
+
+function drawCover(fast = false) {
+  const w = canvas.width, h = canvas.height;
+  if (!w || !h) return;
+  const s = pixelScale();
+
+  // Sharp copy of the works, then draw it blurred.
+  const sharp = document.createElement("canvas");
+  sharp.width = w;
+  sharp.height = h;
+  drawWorks(sharp);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0, 0, w, h);
+  let done = false;
+  if (BLUR_IN_OKLAB && !fast) {
+    try {
+      const blurred = oklabBlur(sharp, COVER_BLUR * s);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(blurred, 0, 0, w, h);              // scale back up to full size
+      done = true;
+    } catch (e) {
+      // Browsers block reading the pixels of images opened straight from
+      // disk (file://), which the OKLab blur needs. Then it falls back to
+      // the ordinary blur below. On a server / GitHub Pages it works.
+    }
+  }
+  if (!done) {
+    ctx.drawImage(sharp, 0, 0);                        // unblurred underlay so the edges don't fade
+    ctx.filter = `blur(${COVER_BLUR * s}px)`;
+    ctx.drawImage(sharp, 0, 0);
+    ctx.filter = "none";
+  }
+
+  // Gray tint on top.
+  ctx.globalAlpha = COVER_TINT;
+  ctx.fillStyle = getComputedStyle(scratcher).getPropertyValue("--scratch-cover").trim() || "#9a9a9a";
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalAlpha = 1;
+
+  if (COVER_TEXT) {
+    ctx.fillStyle = COVER_TEXT_COLOR;
+    // Same font and size as the intro paragraph (scaled to canvas pixels).
+    const para = getComputedStyle(document.querySelector(".intro-text p") || document.body);
+    ctx.font = `${para.fontStyle} ${para.fontWeight} ${parseFloat(para.fontSize) * pixelScale()}px ${para.fontFamily}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(COVER_TEXT, w / 2, h / 2);
+  }
+
+  // Keep only the parts that haven't been scratched.
+  ctx.globalCompositeOperation = "destination-in";
+  ctx.drawImage(mask, 0, 0);
+  ctx.restore();
+}
+
+// Match the canvases' pixel size to their size on screen (sharp on
+// high-res screens). On resize, keep whatever was already scratched.
+function sizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.round(rect.width * dpr);
+  const h = Math.round(rect.height * dpr);
+  if (w === canvas.width && h === canvas.height) return;
+
+  let old = null;
+  if (mask.dataset.ready) {
+    old = document.createElement("canvas");
+    old.width = mask.width;
+    old.height = mask.height;
+    old.getContext("2d").drawImage(mask, 0, 0);
+  }
+
+  canvas.width = mask.width = w;
+  canvas.height = mask.height = h;
+
+  if (old) {
+    mctx.drawImage(old, 0, 0, w, h);          // scratches so far, resized
+  } else {
+    mctx.fillStyle = "#000";
+    mctx.fillRect(0, 0, w, h);                // start fully covered
+    mask.dataset.ready = "1";
+  }
+
+  // While the window is being resized, use the quick blur; redraw with
+  // the full OKLab blur once resizing has stopped for a moment.
+  drawCover(true);
+  clearTimeout(sizeCanvas.timer);
+  sizeCanvas.timer = setTimeout(() => drawCover(), 150);
+}
+
+new ResizeObserver(sizeCanvas).observe(canvas);
+
+// Thumbnails and fonts load a moment after the page; redraw the cover
+// once they're ready so the blurred picture includes them.
+Promise.all([
+  ...[...grid.querySelectorAll("img")].map((img) => img.decode().catch(() => {})),
+  document.fonts ? document.fonts.ready : null,
+]).then(() => drawCover());
+
+// ── 3. The brush ─────────────────────────────────────────
+
+let lastScreen = null;        // previous point in screen pixels + time, to measure speed
+let brush = BRUSH_MIN;        // current brush width (screen pixels), smoothed
+
+// Work out the brush width from the cursor's speed.
+function brushFor(e) {
+  const dt = Math.max(1, e.timeStamp - lastScreen.t);
+  const dist = Math.hypot(e.clientX - lastScreen.x, e.clientY - lastScreen.y);
+  const speed = dist / dt;                                   // pixels per millisecond
+  let amount = Math.min(speed / SPEED_FOR_MAX, 1);          // 0 (still) to 1 (fast)
+  if (!FASTER_IS_BIGGER) amount = 1 - amount;
+  const target = BRUSH_MIN + (BRUSH_MAX - BRUSH_MIN) * amount;
+  brush += (target - brush) * SMOOTHING;                     // ease toward the target
+  return brush;
+}
+
+// Erase a round-ended line from one point to another.
+function scratch(from, to, size) {
+  const width = size * pixelScale();
+  // Erase the same line from the visible cover and from the mask.
+  for (const c of [ctx, mctx]) {
+    c.save();
+    c.globalCompositeOperation = "destination-out";   // erase instead of paint
+    c.lineWidth = width;
+    c.lineCap = "round";
+    c.lineJoin = "round";
+    c.beginPath();
+    c.moveTo(from.x, from.y);
+    c.lineTo(to.x, to.y);
+    c.stroke();
+    c.restore();
+  }
+}
+
+// ── 4. Mouse / touch handling ───────────────────────────────
+
+let scratching = false;
+let last = null;              // previous point, so drags are continuous
+let start = null;             // where the press began, to tell a click from a drag
+let startedOnClear = false;   // was that spot already scratched before this press?
+
+// Is the cover already scratched away at canvas point p?
+// (Counts as scratched if it's at least half see-through — thin, soft
+// scratch lines are never fully transparent even in the middle.)
+function isClearAt(p) {
+  return mctx.getImageData(Math.floor(p.x), Math.floor(p.y), 1, 1).data[3] < 128;
+}
+
+function toCanvas(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height),
+  };
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+  scratching = true;
+  canvas.setPointerCapture(e.pointerId);
+  last = toCanvas(e);
+  start = { x: e.clientX, y: e.clientY };
+  startedOnClear = isClearAt(last);
+  lastScreen = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+  brush = FASTER_IS_BIGGER ? BRUSH_MIN : BRUSH_MAX;   // a fresh press starts at the "still" size
+  scratch(last, last, brush);
+});
+
+canvas.addEventListener("pointermove", (e) => {
+  if (!scratching) return;
+  const p = toCanvas(e);
+  scratch(last, p, brushFor(e));
+  last = p;
+  lastScreen = { x: e.clientX, y: e.clientY, t: e.timeStamp };
+});
+
+canvas.addEventListener("pointerup", (e) => {
+  scratching = false;
+
+  // A click (not a drag) on an area that's already scratched opens
+  // the work underneath it.
+  const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+  if (moved > 5 || !startedOnClear) return;
+
+  canvas.style.pointerEvents = "none";
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  canvas.style.pointerEvents = "";
+  const link = under && under.closest("a");
+  if (link) link.click();
+});
+
+canvas.addEventListener("pointercancel", () => { scratching = false; });
+
+}

@@ -1,143 +1,387 @@
-/* Reset some default styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ─────────────────────────────────────────────────────────────
+   Minimal white theme. Everything you'd want to tweak first
+   (colors, font, spacing) is in :root just below.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Fonts: Presidencia, from assets/fonts ─────────────────────
+   One family, four weights:
+     300 Fina · 400 Base · 700 Firme · 800 Fuerte
+   Use font-weight to pick one, font-style: italic for italics.
+   "Presidencia Versalitas" is the small-caps cut, if you want it. */
+
+
+@font-face {
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Fina/Presidencia Fina.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: block;
 }
 
 @font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Fina.wof2') format('woff2');
-  font-weight:300;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Fina Italic.wof2') format('woff2');
-  font-weight:300;
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Fina/Presidencia Fina Italic.woff2") format("woff2");
+  font-weight: 300;
   font-style: italic;
-}
-@font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Base.wof2') format('woff2');
-  font-weight:400;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Base Italic.wof2') format('woff2');
-  font-weight:400;
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Firme.wof2') format('woff2');
-  font-weight:700;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Firme Italic.wof2') format('woff2');
-  font-weight:700;
-  font-style: italic;
-}
-@font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Fuerte.wof2') format('woff2');
-  font-weight:800;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Presidencia';
-  src: url('fonts/Presidencia Fuerte Italic.wof2') format('woff2');
-  font-weight:800;
-  font-style: italic;
+  font-display: block;
 }
 
-html, body {
-  font-family: 'Presidencia', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f4f4;
-  color: #222;
-  line-height: 1.6;
-  min-height: 100vh;
+@font-face {
+  font-family: "Presidencia Versalitas";
+  src: url("assets/fonts/Presidencia Fina/Presidencia Fina Versalitas.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: block;
 }
 
-/* Layout */
+@font-face {
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Base/Presidencia Base.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Base/Presidencia Base Italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia Versalitas";
+  src: url("assets/fonts/Presidencia Base/Presidencia Base Versalitas.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Firme/Presidencia Firme.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Firme/Presidencia Firme Italic.woff2") format("woff2");
+  font-weight: 700;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia Versalitas";
+  src: url("assets/fonts/Presidencia Firme/Presidencia Firme Versalitas.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Fuerte/Presidencia Fuerte.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia";
+  src: url("assets/fonts/Presidencia Fuerte/Presidencia Fuerte Italic.woff2") format("woff2");
+  font-weight: 800;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Presidencia Versalitas";
+  src: url("assets/fonts/Presidencia Fuerte/Presidencia Fuerte Versalitas.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  --bg: #fff;
+  --ink: #111;
+  --muted: #777;
+  --line: #111;
+  --placeholder: #f1f1f1;
+
+  /* Two font settings: one for the header and headings,
+     one for small info text (paragraphs, captions, etc.).
+     Both are Times New Roman for now. */
+  --font-display: "Times New Roman", Times, serif;
+  --font-text: "Times New Roman", Times, serif;
+
+  --space: 2rem;        /* page margins and gaps */
+  --max-width: 1020px;  /* how wide the content can get — margins are equal on both sides */
+}
+
+* { box-sizing: border-box; }
+
+
 body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-text);   /* everything defaults to the small-text font */
+
+  /* Header, main, footer stacked; main stretches so the footer
+     sits at the bottom of the window even on short pages. */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 2rem;
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-/* Header styles */
-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  font: 'Presidencia';
-  font-weight: 700;
-}
+/* The header and all headings use Presidencia */
+.site-header, h1, h2, h3 { font-family: var(--font-display); }
 
-header h1 {
-  font-size: 2.5rem;
-  color: #333;
-  font: 'Presidencia';
-  font-weight: 800;
-}
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--muted); }
 
-header p {
-  font-size: 1.2rem;
-  color: #666;
-}
+img { display: block; width: 100%; height: auto; }
 
-/* Main content */
 main {
+  flex: 1;
   width: 100%;
-  max-width: 800px;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space) calc(var(--space) * 3);
 }
 
-/* Section */
-section {
-  margin-bottom: 2rem;
+.placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--placeholder);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
 }
 
-h2 {
-  font-size: 1.8rem;
-  color: #444;
-  margin-bottom: 1rem;
-  border-bottom: 2px solid #ccc;
-  padding-bottom: 0.5rem;
+/* ── Header ─────────────────────────────────────────────────── */
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.75rem 1rem; 
+  border-top: 1px solid var(--line);   /* the line across the top of the sketch */
+
 }
 
-/* Project items */
-.project {
-  background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+.site-name { font-size: 1.5rem; }
+
+.site-header nav { display: flex; gap: 1.5rem; }
+
+/* ── Footer ─────────────────────────────────────────────────── */
+
+.site-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.site-footer nav { display: flex; gap: 1.5rem; }
+
+/* ── Intro: text + splash ───────────────────────────────────── */
+
+.intro {
+  display: grid;
+  grid-template-columns: 1fr 3.35fr;   /* text column : splash column */
+  gap: 6rem;                           /* space between text and splash */
+  margin: var(--space) 0 calc(var(--space) * 2);
 }
 
-.project a {
-  text-decoration: none;
-  color: #0066cc;
+.intro-text p { margin: 0 0 1em; }   /* space below each paragraph */
+.intro-text a { color: revert; text-decoration: underline; }   /* normal blue/purple links */
+
+.splash {
+  align-self: start;     /* lined up with the top of the text */
 }
 
-.project a:hover {
-  text-decoration: underline;
+/* ── Scratcher ──────────────────────────────────────────────── */
+
+.scratcher {
+  aspect-ratio: 4 / 3;         /* width / height — the scratcher's shape */
+  position: relative;          /* so the grid and cover can stack on top of each other */
+  border: 1px solid var(--ink);
+  overflow: hidden;            /* keep the cover's shadow inside the scratcher */
+  --scratch-cover: #3c97d0;    /* color of the scratch-off layer */
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  body {
-    padding: 1rem;
+
+/* The grid of works underneath. Rows/cols are set by scratcher.js
+   from the data-rows / data-cols in index.html. */
+.scratch-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: 1px;                    /* thin lines between cells… */
+  background: var(--ink);      /* …drawn by this color showing through the gaps */
+}
+
+.scratch-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg);
+  padding: 8%;                 /* white margin around each thumbnail + title */
+  justify-content: center;     /* thumbnail + title sit together, centered in the cell */
+}
+.scratch-cell img {
+  flex: 0 1 auto;              /* natural height, shrinks if the cell is short */
+  min-height: 0;
+  object-fit: contain;         /* show the whole thumbnail, no cropping */
+  object-position: left bottom;/* keep the picture snug against the title */
+  margin-bottom: 0.3rem;       /* space between thumbnail and title */
+}
+.scratch-cell span {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The scratch-off layer on top */
+.scratch-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;          /* on phones, dragging scratches instead of scrolling */
+  image-rendering: pixelated;  /* keep the scratched edges hard, never blurred */
+
+  /* Shadow cast by the cover onto the works underneath. It follows the
+     cover's shape, so it shows along the edges of every scratch.
+     drop-shadow(right, down, blur, color) */
+  filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* Open hand on hover, closed hand while the mouse button is held.
+   (Your custom cursor images override these — see "Custom cursors" below.) */
+.grabbable {
+  cursor: grab;
+}
+.grabbable:active {
+  cursor: grabbing;
+}
+
+/* ── Work grid ──────────────────────────────────────────────── */
+
+.work { margin-top: var(--space); }   /* space between the header and "Selected Work:" */
+
+.work-title {
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1;
+  margin: 0 0 3rem;    /* space between the heading and the grid below it */
+}
+
+.works-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--space) * 1.25) var(--space);
+}
+
+.thumb {
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.thumb img { height: 100%; object-fit: cover; }
+
+.caption { margin: 0.5rem 0 0; }
+
+/* ── Single work page ───────────────────────────────────────── */
+
+.work-detail {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: calc(var(--space) * 2);
+  margin-top: var(--space);
+}
+/* The column of content blocks (text, images, videos, links) */
+.work-content { display: flex; flex-direction: column; gap: var(--space); min-width: 0; }
+.work-content .placeholder { aspect-ratio: 4 / 3; }
+
+.block-media { margin: 0; }
+.block-media img,
+.block-media video { display: block; width: 100%; height: auto; }
+.block-media .caption { margin-top: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+
+.block-text { margin: 0; max-width: 60ch; }       /* keep paragraphs a readable width */
+.block-heading { font-size: 1.25rem; font-weight: normal; margin: var(--space) 0 0; }
+.block-link { margin: 0; }
+.block-link a { text-decoration: underline; text-underline-offset: 0.2em; }
+.block-text a { text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* YouTube / Vimeo players: always 16:9, full width */
+.video-embed { position: relative; aspect-ratio: 16 / 9; background: var(--placeholder); }
+.video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.work-info { position: sticky; top: var(--space); align-self: start; }
+.work-info h1 { font-size: 1.5rem; font-weight: normal; margin: 0; }
+.work-info .caption { margin-top: 0; }
+
+/* ── Bio page ───────────────────────────────────────────────── */
+
+.bio > * { max-width: 640px; }   /* keep lines a readable length */
+.bio h2 { font-size: 1rem; margin: 2.5rem 0 0.5rem; }
+.bio ul { list-style: none; padding: 0; margin: 0; }
+
+/* ── Small screens ──────────────────────────────────────────── */
+
+@media (max-width: 800px) {
+  :root { --space: 1.25rem; }
+  .intro, .work-detail { grid-template-columns: 1fr; }
+  .intro { gap: var(--space); }
+  .works-grid { grid-template-columns: repeat(2, 1fr); }
+  .work-info { position: static; }
+}
+
+@media (max-width: 480px) {
+  .works-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Custom cursors ─────────────────────────────────────────────
+   Two cursor images, in assets/cursors/:
+     openhand.svg    hovering over the scratcher
+     closedhand.svg  while scratching
+   Everywhere else uses the normal system cursors.
+
+   Each line below is:  url("image") X Y, fallback
+     X Y       the hotspot: the point in the image that sits on the mouse
+               position, from the image's top-left corner (16 16 = center)
+     fallback  the system cursor, used if the image can't load
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  --cursor-grab:     url("assets/cursors/openhand.svg") 16 16, grab;
+  --cursor-grabbing: url("assets/cursors/closedhand.svg") 16 16, grabbing;
+}
+
+/* Only on devices with a real mouse/trackpad (not phones), and only when
+   the visitor hasn't turned on high contrast in their system. */
+@media (hover: hover) and (pointer: fine) and (forced-colors: none) and (prefers-contrast: no-preference) {
+  .grabbable {
+    cursor: var(--cursor-grab);
   }
-
-  header h1 {
-    font-size: 2rem;
-  }
-
-  h2 {
-    font-size: 1.5rem;
+  .grabbable:active {
+    cursor: var(--cursor-grabbing);
   }
 }

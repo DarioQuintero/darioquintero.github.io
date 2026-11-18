@@ -1,0 +1,143 @@
+/* Reset some default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Fina.wof2') format('woff2');
+  font-weight:300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Fina Italic.wof2') format('woff2');
+  font-weight:300;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Base.wof2') format('woff2');
+  font-weight:400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Base Italic.wof2') format('woff2');
+  font-weight:400;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Firme.wof2') format('woff2');
+  font-weight:700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Firme Italic.wof2') format('woff2');
+  font-weight:700;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Fuerte.wof2') format('woff2');
+  font-weight:800;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Presidencia';
+  src: url('fonts/Presidencia Fuerte Italic.wof2') format('woff2');
+  font-weight:800;
+  font-style: italic;
+}
+
+html, body {
+  font-family: 'Presidencia', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f4f4;
+  color: #222;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Layout */
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Header styles */
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+  font: 'Presidencia';
+  font-weight: 700;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  font: 'Presidencia';
+  font-weight: 800;
+}
+
+header p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Main content */
+main {
+  width: 100%;
+  max-width: 800px;
+}
+
+/* Section */
+section {
+  margin-bottom: 2rem;
+}
+
+h2 {
+  font-size: 1.8rem;
+  color: #444;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 0.5rem;
+}
+
+/* Project items */
+.project {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.project a {
+  text-decoration: none;
+  color: #0066cc;
+}
+
+.project a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+}

@@ -29,6 +29,11 @@ const SPEED_FOR_MAX = 5;        // speed (pixels per millisecond) that reaches B
 const FASTER_IS_BIGGER = true;    // false = fast strokes get thinner instead
 const SMOOTHING = 0.1;              // 0–1: how quickly the size follows speed changes
                                   //   (lower = smoother, higher = more jittery)
+
+// Grain: tiny specks scattered along the edges of each scratch, so it looks
+// torn instead of smooth.
+const GRAIN = 0.3;                // 0 = smooth edges, 1 = very ragged
+const GRAIN_SIZE = 1;             // size of each speck (screen pixels)
 // The cover's tint color is --scratch-cover in style.css.
 // ─────────────────────────────────────────────────────────────
 
@@ -49,15 +54,37 @@ const cols = Number(scratcher.dataset.cols) || 3;
 grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-// Pick a random set of works each time the page loads
-// (shuffle a copy of the list, then take the first rows x cols).
-const shuffled = [...works];
-for (let i = shuffled.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+// ── Keeping the card for the rest of the visit ──
+// The card (which works, what's been scratched) is saved in this tab's
+// sessionStorage, so leaving the home page and coming back shows it
+// exactly as it was. sessionStorage is cleared when the tab is closed,
+// and a reload deliberately starts over — both give a fresh card.
+const SAVE_KEY = "scratcher-card";
+const navigation = performance.getEntriesByType("navigation")[0];
+let saved = null;
+try {
+  if (navigation && navigation.type === "reload") sessionStorage.removeItem(SAVE_KEY);
+  else saved = JSON.parse(sessionStorage.getItem(SAVE_KEY));
+} catch (e) { /* storage blocked: just use a fresh card */ }
+
+// Use the saved works if they still fit this grid; otherwise pick a
+// random set (shuffle a copy of the list, then take the first rows x cols).
+let chosen = null;
+if (saved && saved.rows === rows && saved.cols === cols) {
+  chosen = saved.ids.map((id) => works.find((w) => w.id === id)).filter(Boolean);
+  if (chosen.length !== rows * cols) chosen = null;
+}
+if (!chosen) {
+  saved = null;
+  const shuffled = [...works];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  chosen = shuffled.slice(0, rows * cols);
 }
 
-for (const work of shuffled.slice(0, rows * cols)) {
+for (const work of chosen) {
   const cell = document.createElement("a");
   cell.className = "scratch-cell";
   cell.href = `work.html?id=${work.id}`;
@@ -413,9 +440,71 @@ const ready = Promise.all([
   document.fonts ? document.fonts.ready : null,
 ]);
 const timeout = new Promise((resolve) => setTimeout(resolve, MAX_WAIT));
-Promise.race([ready, timeout]).then(() => {
+// The saved scratches, if returning to this card.
+const savedScratches = new Promise((resolve) => {
+  if (!saved || !saved.mask) return resolve(null);
+  const img = new Image();
+  img.onload = () => resolve(img);
+  img.onerror = () => resolve(null);
+  img.src = saved.mask;
+});
+
+Promise.race([ready, timeout]).then(async () => {
+  const img = await savedScratches;
+  sizeCanvas();   // make sure the canvases are set up first, so the
+                  // first resize can't wipe the restored scratches
+  if (img) {
+    mctx.save();
+    mctx.globalCompositeOperation = "copy";              // replace the mask entirely
+    mctx.drawImage(img, 0, 0, mask.width, mask.height);   // (stretched if the size changed)
+    mctx.restore();
+  }
   drawCover();
   scratcher.classList.add("is-ready");
+  saveCard();
+});
+
+// Save the card: which works, and the scratches (as a small image).
+function saveCard() {
+  try {
+    sessionStorage.setItem(SAVE_KEY, JSON.stringify({
+      rows,
+      cols,
+      ids: chosen.map((w) => w.id),
+      mask: mask.dataset.ready ? mask.toDataURL() : null,
+    }));
+  } catch (e) { /* storage full or blocked: the card just won't be kept */ }
+}
+// Put the saved scratches back onto the mask, then redraw the cover.
+function restoreScratches() {
+  let data = null;
+  try { data = JSON.parse(sessionStorage.getItem(SAVE_KEY)); } catch (e) {}
+  if (!data || !data.mask) return drawCover();
+  const img = new Image();
+  img.onload = () => {
+    mctx.save();
+    mctx.globalCompositeOperation = "copy";
+    mctx.drawImage(img, 0, 0, mask.width, mask.height);
+    mctx.restore();
+    drawCover();
+  };
+  img.onerror = () => drawCover();
+  img.src = data.mask;
+}
+
+// Coming back with the browser's Back button can restore this page from
+// memory instead of reloading it — and browsers may have cleared the
+// canvases while it was stored. Redraw from the saved copy.
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) restoreScratches();
+});
+// Same if the browser drops the canvas while the tab is in the background.
+canvas.addEventListener("contextrestored", restoreScratches);
+
+// Save when leaving the page (following a link, switching tabs, closing).
+window.addEventListener("pagehide", saveCard);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") saveCard();
 });
 
 // ── 3. The brush ─────────────────────────────────────────
@@ -437,18 +526,55 @@ function brushFor(e) {
 
 // Erase a round-ended line from one point to another.
 function scratch(from, to, size) {
-  const width = size * pixelScale();
-  // Erase the same line from the visible cover and from the mask.
+  const k = pixelScale();                  // screen px -> canvas px
+  const width = size * k;
+  const half = width / 2;
+
+  // The specks are worked out once, then erased from both canvases, so
+  // the visible cover and the mask always match.
+  const specks = [];
+  if (GRAIN > 0) {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.hypot(dx, dy);
+    // Direction across the stroke (for a single click, any direction).
+    const nx = len ? -dy / len : 0, ny = len ? dx / len : 1;
+    const speck = Math.max(1, GRAIN_SIZE * k);
+    const band = Math.max(2 * k, half * 0.8);   // how far specks spread around each edge
+    const steps = Math.max(1, Math.ceil(len / k));
+    const perStep = Math.ceil(GRAIN * 6);
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const cx = from.x + dx * t, cy = from.y + dy * t;
+      for (let j = 0; j < perStep; j++) {
+        // Pick an edge, then a random distance from the centre line that
+        // clusters around that edge: some specks inside, some outside.
+        const side = Math.random() < 0.5 ? -1 : 1;
+        const d = side * (half * (1 - GRAIN * 0.5) + (Math.random() - 0.3) * band * GRAIN);
+        const along = (Math.random() - 0.5) * k * 2;   // a little jitter along the line too
+        specks.push([
+          cx + nx * d + (len ? dx / len : 0) * along - speck / 2,
+          cy + ny * d + (len ? dy / len : 0) * along - speck / 2,
+          speck,
+        ]);
+      }
+    }
+  }
+
+  // Erase from the visible cover and from the mask.
   for (const c of [ctx, mctx]) {
     c.save();
     c.globalCompositeOperation = "destination-out";   // erase instead of paint
-    c.lineWidth = width;
+    // The smooth core, a bit thinner when there's grain (the specks
+    // make up the edge).
+    c.lineWidth = Math.max(1, width * (1 - GRAIN * 0.5));
     c.lineCap = "round";
     c.lineJoin = "round";
     c.beginPath();
     c.moveTo(from.x, from.y);
     c.lineTo(to.x, to.y);
     c.stroke();
+    // The grainy edge.
+    for (const [x, y, sz] of specks) c.fillRect(x, y, sz, sz);
     c.restore();
   }
 }
@@ -496,6 +622,7 @@ canvas.addEventListener("pointermove", (e) => {
 
 canvas.addEventListener("pointerup", (e) => {
   scratching = false;
+  saveCard();
 
   // A click (not a drag) on an area that's already scratched opens
   // the work underneath it.

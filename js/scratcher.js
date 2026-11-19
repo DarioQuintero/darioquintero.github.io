@@ -8,7 +8,7 @@
 // different every time the page loads.
 //
 // Settings you might want to tweak:
-const COVER_TEXT = "Scratch me.";            // text printed on the cover ("" for none)
+const COVER_TEXT = "Scratch";            // text printed on the cover ("" for none)
 const COVER_TEXT_COLOR = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();;
 
 // The cover is frosted glass: a blurred, gray-tinted view of the works

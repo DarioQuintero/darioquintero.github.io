@@ -6,7 +6,8 @@
 //   2. Put its images and videos in that folder.
 //   3. Copy one of the entries below and fill it in.
 //
-// The order here is the order on the Work page.
+// The Work page lists works by year, newest first (see the bottom of
+// this file). Works from the same year keep the order they have here.
 //
 //   id          used in the work's address (work.html?id=...).
 //               lowercase, dashes instead of spaces, must be unique.
@@ -40,36 +41,31 @@
 //   { type: "heading", text: "Process" }
 //       A small heading to split a long page into sections.
 //
+//   { type: "row", items: [
+//       { type: "image", src: "works/my-work/01.jpg", caption: "Optional" },
+//       { type: "image", src: "works/my-work/02.jpg" },
+//   ] }
+//       Two or more images (or videos) side by side, in equal-width columns.
+//       Put any number of image/video blocks in "items".
+//
 // Every block's caption is optional — leave it out if you don't need it.
 // ─────────────────────────────────────────────────────────────
 
 const works = [
   {
-    id: "plant-matter",
-    title: "Plant Matter",
-    year: "2026",
-    thumbnail: "works/plant-matter/placeholder.svg",
-    description: "Placeholder. This page shows every kind of content block — see the top of js/works.js.",
-    tags: ["art"],
+    id: "thumbs-up",
+    title: "Thumbs Up",
+    year: "2024",
+    thumbnail: "works/thumbs-up/thumbnail.png",
     content: [
-      { type: "image", src: "works/plant-matter/placeholder.svg", caption: "Installation view (placeholder image)" },
-      { type: "text", text: "This is a paragraph block. Write about the work here. Simple formatting works too: <em>italics</em>, <strong>bold</strong>, and <a href=\"https://example.com\">inline links</a>." },
-      { type: "heading", text: "Process" },
-      { type: "text", text: "Another paragraph. Blocks appear in the order they're listed, so you can alternate text, images and video however you like." },
-      { type: "video", src: "works/plant-matter/placeholder.mp4", loop: true, caption: "A looping video file (placeholder)" },
-      { type: "link", url: "https://example.com", label: "View the live piece" },
+      { type: "video", src: "https://www.youtube.com/watch?v=CL9S3yzByPw"},
+      {type: "image", src: "works/thumbs-up/thumbs-up-model.jpg"},
+      { type: "text", text: "Thumbs Up is a fighting game in which two thumbs locked in place engage in hand-to-hand combat. It was made in Unity at the CMU Game Creation Society."},
+      { type: "text", text: "The game was pitched and led by me throughout Carnegie Mellon's Fall 2024 semester. I led a team of 6 which consisted of four programmers, an artist and a sound designer. "},
+      { type: "text", text: "I was also heavily involved in the art direction. Throughout the course of development I trained the other artist, who was previously exclusively a traditional artist, to sculpt and model in Blender. The other artist sculpted the thumb characters and created the environment; I handled retopology, rigging, texturing, and animation of the hand characters."},
     ],
-  },
-  {
-    id: "sink-explorations",
-    title: "Sink Explorations",
-    year: "2026",
-    thumbnail: "works/sink-explorations/placeholder.svg",
-    content: [
-      { type: "image", src: "works/sink-explorations/placeholder.svg" },
-    ],
-    description: "",
-    tags: ["art"],
+    description: "A Unity-developed video game.",
+    tags: ["game development"]
   },
   {
     id: "core-apple",
@@ -116,14 +112,22 @@ const works = [
     tags: ["art", "code"],
   },
   {
-    id: "untitled-01",
-    title: "Untitled 01",
-    year: "2025",
-    thumbnail: "works/untitled-01/placeholder.svg",
+    id: "comfyui-abstractions",
+    title: "ComfyUI Abstractions",
+    year: "2024",
+    thumbnail: "works/comfyui-abstractions/constellation-2.jpg",
     content: [
-      { type: "image", src: "works/untitled-01/placeholder.svg" },
+      { type: "text", text: `This is an experiment I did using ComfyUI, a tool for creating and executing. Stable Diffusion pipelines. In this workflow, I first used the epiCRealism SDXL checkpoint with 5 steps and a denoise of 0.55, then injected noise into the latent image, and then plugged that into another k-sampler running on the default runcomy model for 20 steps and with a denoise value of 1 and I got these interesting results. Pictured on the top center is the p5.js sketch, and pictured on the bottom center is the intermediate image produced by epiCRealism. By chaining together models in unexpected ways, I was surprised by the unique visual structures that arose.` },
+      { type: "text", text: `On the bottom right is an image with the workflow embedded in the metadata.` },
+      { type: "image", src: "works/comfyui-abstractions/constellation-1.jpg" },
+      { type: "image", src: "works/comfyui-abstractions/constellation-2.jpg" },
+      { type: "row", items: [
+        { type: "image", src: "works/comfyui-abstractions/intermediate-sketch.jpg", caption: "The p5.js sketch" },
+        { type: "image", src: "works/comfyui-abstractions/intermediate-output.jpg", caption: "Intermediate image produced by epiCRealism" },
+      ] },
+      { type: "image", src: "works/comfyui-abstractions/workflow.jpg", caption: "Workflow" },
     ],
-    description: "Placeholder work.",
+    description: "Images made by chaining together diffusion models.",
     tags: ["art"],
   },
   {
@@ -182,3 +186,9 @@ const works = [
     tags: ["art"],
   },
 ];
+
+// ── Sort by year, newest first ──────────────────────────────
+// Used everywhere: the Work page, and Prev / Next on each work's page.
+// Works with no year go last. To show oldest first, swap a and b below.
+const yearOf = (w) => parseInt(w.year, 10) || -Infinity;
+works.sort((a, b) => yearOf(b) - yearOf(a));

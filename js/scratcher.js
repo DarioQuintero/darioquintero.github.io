@@ -8,9 +8,19 @@
 // different every time the page loads.
 //
 // Settings you might want to tweak:
-const COVER_TEXT = "Scratch";            // text printed on the cover ("" for none)
+const COVER_TEXT = "Scratch.";            // text printed on the cover ("" for none)
 const COVER_TEXT_COLOR = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();;
 
+// What the cover is made of:
+//   "image" — the picture in COVER_IMAGE, stretched to fill the card
+//   "blur"  — frosted glass: a blurred view of the works (settings below)
+const COVER_STYLE = "image";
+const COVER_IMAGE = "assets/images/aluminum-foil-background.webp";
+const EMBOSS_TEXT = true;         // picture cover only: press COVER_TEXT into the
+                                  //   picture instead of printing it in COVER_TEXT_COLOR
+const EMBOSS_DEPTH = 0.75;           // how raised the letters look (screen pixels)
+
+// Blur settings (only used when COVER_STYLE is "blur").
 // The cover is frosted glass: a blurred, gray-tinted view of the works
 // underneath. Scratching reveals them sharp.
 const COVER_BLUR = 16;             // how blurry the works look through the cover (screen pixels)
@@ -140,13 +150,13 @@ function drawWorks(target) {
     tctx.fillStyle = getComputedStyle(cell).backgroundColor;
     tctx.fillRect(...place(cell.getBoundingClientRect()));
 
-    // Thumbnail, fitted the same way CSS shows it (whole image, bottom-left).
+    // Thumbnail, filled and cropped from the centre the same way CSS shows it.
     const img = cell.querySelector("img");
     if (img && img.complete && img.naturalWidth) {
       const [bx, by, bw, bh] = place(img.getBoundingClientRect());
-      const k = Math.min(bw / img.naturalWidth, bh / img.naturalHeight);
-      const w = img.naturalWidth * k, h = img.naturalHeight * k;
-      tctx.drawImage(img, bx, by + bh - h, w, h);
+      const k = Math.max(bw / img.naturalWidth, bh / img.naturalHeight);
+      const sw = bw / k, sh = bh / k;                                  // part of the image that fits
+      tctx.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, bx, by, bw, bh);
     }
 
     // Title
@@ -332,20 +342,74 @@ const CANVAS_BLUR_WORKS = (() => {
   }
 })();
 
+// The cover picture (when COVER_STYLE is "image"), loaded right away.
+let coverImage = null;
+if (COVER_STYLE === "image") {
+  coverImage = new Image();
+  coverImage.src = COVER_IMAGE;
+}
+
+// Draw the cover picture filling the whole canvas, cropped to fit
+// without stretching (like CSS object-fit: cover).
+function drawCoverImage(w, h) {
+  const iw = coverImage.naturalWidth, ih = coverImage.naturalHeight;
+  const k = Math.max(w / iw, h / ih);
+  const dw = iw * k, dh = ih * k;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(coverImage, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  return { x: (w - dw) / 2, y: (h - dh) / 2, k };
+}
+
+// Embossed text: the letters show the same picture as around them, with a
+// light edge up-left and a dark edge down-right, as if pressed up from behind.
+function drawEmbossedText(text, x, y, placed) {
+  const d = EMBOSS_DEPTH * pixelScale();
+
+  ctx.save();
+  ctx.shadowBlur = d;                                   // soften the edges slightly
+  // Dark edge (bottom-right).
+  ctx.shadowColor = ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+  ctx.fillText(text, x + d, y + d);
+  // Light edge (top-left).
+  ctx.shadowColor = ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+  ctx.fillText(text, x - d, y - d);
+  ctx.restore();
+
+  // The face of the letters: the picture itself, lined up exactly with the
+  // picture underneath, so only the edges give the letters away.
+  const face = ctx.createPattern(coverImage, "no-repeat");
+  if (face) {                     // (null if the picture isn't fully loaded yet)
+    face.setTransform(new DOMMatrix().translate(placed.x, placed.y).scale(placed.k));
+    ctx.fillStyle = face;
+    ctx.fillText(text, x, y);
+  }
+  // A faint sheen on the raised face.
+  ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.fillText(text, x, y);
+}
+
 function drawCover(fast = false) {
   const w = canvas.width, h = canvas.height;
   if (!w || !h) return;
   const s = pixelScale();
 
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0, 0, w, h);
+
+  let placed = null;   // where the cover picture was drawn (picture cover only)
+  if (COVER_STYLE === "image" && coverImage && coverImage.complete && coverImage.naturalWidth) {
+    // ── Picture cover ──
+    placed = drawCoverImage(w, h);
+  } else {
+  // ── Blur cover ──
   // Sharp copy of the works, then draw it blurred.
   const sharp = document.createElement("canvas");
   sharp.width = w;
   sharp.height = h;
   drawWorks(sharp);
 
-  ctx.save();
-  ctx.globalCompositeOperation = "source-over";
-  ctx.clearRect(0, 0, w, h);
   let done = false;
   // Hand-written blur: always in OKLab mode, and also whenever the browser
   // can't blur by itself (Safari). Otherwise the browser's quick blur.
@@ -374,15 +438,17 @@ function drawCover(fast = false) {
   ctx.fillStyle = getComputedStyle(scratcher).getPropertyValue("--scratch-cover").trim() || "#9a9a9a";
   ctx.fillRect(0, 0, w, h);
   ctx.globalAlpha = 1;
+  } // end of blur cover
 
   if (COVER_TEXT) {
     ctx.fillStyle = COVER_TEXT_COLOR;
     // Same font and size as the intro paragraph (scaled to canvas pixels).
     const para = getComputedStyle(document.querySelector(".intro-text p") || document.body);
-    ctx.font = `${para.fontStyle} ${para.fontWeight} ${parseFloat(para.fontSize) * pixelScale()}px ${para.fontFamily}`;
+    ctx.font = `${para.fontStyle} ${para.fontWeight} ${48 * pixelScale()}px ${para.fontFamily}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(COVER_TEXT, w / 2, h / 2);
+    if (EMBOSS_TEXT && placed) drawEmbossedText(COVER_TEXT, w / 2, h / 2, placed);
+    else ctx.fillText(COVER_TEXT, w / 2, h / 2);
   }
 
   // Keep only the parts that haven't been scratched.
@@ -437,6 +503,7 @@ new ResizeObserver(sizeCanvas).observe(canvas);
 const MAX_WAIT = 3000;
 const ready = Promise.all([
   ...[...grid.querySelectorAll("img")].map((img) => img.decode().catch(() => {})),
+  coverImage ? coverImage.decode().catch(() => {}) : null,
   document.fonts ? document.fonts.ready : null,
 ]);
 const timeout = new Promise((resolve) => setTimeout(resolve, MAX_WAIT));

@@ -6,7 +6,7 @@
   <title>Dario Quintero</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="work-page">
 
   <header class="site-header">
     <a href="index.html" class="site-name">Dario Quintero</a>
@@ -18,19 +18,23 @@
   </header>
 
   <!-- One page for every work. js/work.js fills this in based on the
-       ?id= in the address, e.g. work.html?id=plant-matter -->
-  <main>
-    <article id="work-detail" class="work-detail"></article>
+       ?id= in the address, e.g. work.html?id=plant-matter
+
+       Left: back link, the work's text, prev/next.
+       Right: the work's images and videos, large. -->
+  <main class="work-layout">
+
+    <aside class="work-side">
+      <a href="works.html" class="work-back">← Back to artworks</a>
+
+      <div id="work-text" class="work-text"></div>
+
+      <nav id="work-prevnext" class="work-prevnext"></nav>
+    </aside>
+
+    <section id="work-media" class="work-media"></section>
+
   </main>
-
-  <footer class="site-footer">
-    <span>© 2026 Dario Quintero</span>
-    <nav>
-      <a data-email>Email</a>
-      <a href="https://www.instagram.com/">Instagram</a>
-    </nav>
-  </footer>
-
 
   <script src="js/works.js"></script>
   <script src="js/work.js"></script>

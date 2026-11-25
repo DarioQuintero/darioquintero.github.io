@@ -120,7 +120,9 @@
   --font-text: "Times New Roman", Times, serif;
 
   --space: 2rem;        /* page margins and gaps */
-  --max-width: 1020px;  /* how wide the content can get — margins are equal on both sides */
+  --max-width: 1020px;  /* width of the centered column (intro + scratcher, bio) */
+  --edge: 1rem;         /* slim page margin: the work grid and work pages run
+                           out to this, lined up with the header */
 }
 
 * { box-sizing: border-box; }
@@ -152,6 +154,10 @@ img { display: block; width: 100%; height: auto; }
 main {
   flex: 1;
   width: 100%;
+  padding: 0 var(--edge) calc(var(--space) * 3);   /* full width, slim margins */
+}
+/* The bio page keeps the narrower centered column. */
+main.bio {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 0 var(--space) calc(var(--space) * 3);
@@ -173,7 +179,7 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 0.75rem 1rem; 
+  padding: 0.75rem var(--edge); 
   border-top: 1px solid var(--line);   /* the line across the top of the sketch */
 
 }
@@ -188,7 +194,7 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem var(--edge);
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 0.9rem;
@@ -201,7 +207,8 @@ main {
   display: grid;
   grid-template-columns: 1fr 3.35fr;   /* text column : splash column */
   gap: 6rem;                           /* space between text and splash */
-  margin: var(--space) 0 calc(var(--space) * 2);
+  margin: var(--space) auto calc(var(--space) * 2);
+  max-width: calc(var(--max-width) - 2 * var(--space));   /* stays in the centered column */
 }
 
 .intro-text p { margin: 0 0 1em; }   /* space below each paragraph */
@@ -216,7 +223,6 @@ main {
 .scratcher {
   aspect-ratio: 4 / 3;         /* width / height — the scratcher's shape */
   position: relative;          /* so the grid and cover can stack on top of each other */
-  border: 1px solid var(--ink);
   overflow: hidden;            /* keep the cover's shadow inside the scratcher */
   --scratch-cover: #3c97d0;    /* color of the scratch-off layer */
 }
@@ -225,7 +231,7 @@ main {
    (scratcher.js adds "is-ready"). */
 .scratcher > * {
   opacity: 0;
-  transition: opacity 0.3s;    /* fade-in length; 0s = appear instantly */
+  transition: opacity 0.2s;    /* fade-in length; 0s = appear instantly */
 }
 .scratcher.is-ready > * {
   opacity: 1;
@@ -254,8 +260,10 @@ main {
 .scratch-cell img {
   flex: 0 1 auto;              /* natural height, shrinks if the cell is short */
   min-height: 0;
-  object-fit: contain;         /* show the whole thumbnail, no cropping */
-  object-position: left bottom;/* keep the picture snug against the title */
+  width: 100%;
+  aspect-ratio: 4 / 3;         /* every thumbnail gets the same box shape */
+  object-fit: cover;           /* fill the box, cropping whatever doesn't fit */
+  object-position: center;     /* crop evenly from the middle */
   margin-bottom: 0.3rem;       /* space between thumbnail and title */
 }
 .scratch-cell span {
@@ -300,53 +308,173 @@ main {
   margin: 0 0 3rem;    /* space between the heading and the grid below it */
 }
 
+/* Tag buttons above the grid on the Work page */
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: -1.5rem 0 2rem;      /* pulled up toward the heading a little */
+}
+.tag-filter button {
+  font: inherit;
+  color: var(--muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-transform: capitalize;  /* shown as "Code" even though written "code" */
+}
+.tag-filter button:hover { color: var(--ink); }
+.tag-filter button[aria-pressed="true"] {    /* the tag being shown */
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 .works-grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);   /* works per row */
   gap: calc(var(--space) * 1.25) var(--space);
 }
 
 .thumb {
-  aspect-ratio: 1 / 1;
-  border: 1px solid var(--line);
+  aspect-ratio: 4 / 3;         /* thumbnail shape, same as on the scratcher */
   overflow: hidden;
 }
 .thumb img { height: 100%; object-fit: cover; }
 
 .caption { margin: 0.5rem 0 0; }
 
-/* ── Single work page ───────────────────────────────────────── */
+/* ── Single work page ─────────────────────────────────────────
+   Under the usual header. Left: a narrow column that stays put (back
+   link, the work's text, prev/next). Right: the work's images and
+   videos, large. */
 
-.work-detail {
+.work-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: calc(var(--space) * 2);
-  margin-top: var(--space);
+  grid-template-columns: minmax(220px, 20rem) 1fr;   /* left column width : the rest */
+  max-width: none;            /* use the full window, unlike other pages */
+  margin: 0;
+  padding: 0;
 }
-/* The column of content blocks (text, images, videos, links) */
-.work-content { display: flex; flex-direction: column; gap: var(--space); min-width: 0; }
-.work-content .placeholder { aspect-ratio: 4 / 3; }
 
+.work-side {
+  position: sticky;           /* stays in place while the images scroll */
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;           /* scrolls on its own if its text is very long */
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 1.5rem 2rem 2rem 1rem;   /* left edge lines up with your name in the header */
+  font-size: 0.9rem;
+}
+.work-back { color: var(--muted); }
+.work-back:hover { color: var(--ink); }
+
+.work-text h1 { font-size: 1rem; font-weight: normal; margin: 0; }
+.work-text p { margin: 0 0 1em; }
+.work-text .work-year { color: var(--muted); }
+
+.work-prevnext { }                     /* sits right under the text */
+
+.work-media {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 1.5rem 1rem 2.5rem 0;    /* top lines up with the left column; right edge with the header */
+  min-width: 0;
+  align-items: center;              /* images and videos centered in this area */
+}
+.work-media > * { max-width: 100%; }
+/* YouTube/Vimeo players and placeholders have no size of their own:
+   let them use the full width. */
+.work-media > .placeholder,
+.work-media > .block-media:has(.video-embed) { align-self: stretch; }
+.work-media .placeholder { aspect-ratio: 4 / 3; }
+
+/* Images and videos */
 .block-media { margin: 0; }
 .block-media img,
-.block-media video { display: block; width: 100%; height: auto; }
+.block-media video {
+  display: block;
+  width: auto;                      /* the image's own size, but never wider */
+  max-width: 100%;                  /*   than the area or taller than the window */
+  height: auto;
+  max-height: calc(100vh - 5rem);   /* a tall image still fits on screen */
+}
 .block-media .caption { margin-top: 0.5rem; color: var(--muted); font-size: 0.9rem; }
 
-.block-text { margin: 0; max-width: 60ch; }       /* keep paragraphs a readable width */
-.block-heading { font-size: 1.25rem; font-weight: normal; margin: var(--space) 0 0; }
-.block-link { margin: 0; }
-.block-link a { text-decoration: underline; text-underline-offset: 0.2em; }
+/* "row" blocks: images/videos side by side in equal columns */
+.block-row {
+  align-self: stretch;              /* use the full width of the area */
+  display: grid;
+  grid-template-columns: repeat(var(--columns), 1fr);
+  gap: 1rem;                        /* space between the images in a row */
+  align-items: start;
+}
+.block-row .block-media img,
+.block-row .block-media video {
+  width: 100%;                      /* each image fills its column */
+  object-fit: contain;
+}
+
+/* Text, headings and links (in the left column) */
+.block-text { max-width: 60ch; }
+.block-heading { font-size: 1rem; font-weight: normal; margin: 1.5em 0 0.5em; }
+.block-link a,
 .block-text a { text-decoration: underline; text-underline-offset: 0.2em; }
 
 /* YouTube / Vimeo players: always 16:9, full width */
 .video-embed { position: relative; aspect-ratio: 16 / 9; background: var(--placeholder); }
 .video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.work-info { position: sticky; top: var(--space); align-self: start; }
-.work-info h1 { font-size: 1.5rem; font-weight: normal; margin: 0; }
-.work-info .caption { margin-top: 0; }
+
+/* YouTube before it's played: the video's still image with a play button */
+.yt-poster { cursor: pointer; background: #000; }
+.block-media .yt-poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+}
+.yt-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 72px;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.yt-play::after {                  /* the triangle */
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  border-style: solid;
+  border-width: 14px 0 14px 24px;
+  border-color: transparent transparent transparent #fff;
+}
+.yt-poster:hover .yt-play { background: rgba(0, 0, 0, 0.85); }
+
+/* Small screens: one column — the text first, then the images. */
+@media (max-width: 800px) {
+  .work-layout { grid-template-columns: 1fr; }
+  .work-side { position: static; height: auto; padding: 1.5rem 1.25rem; gap: 1.5rem; }
+  .work-media { padding: 0 1.25rem 1.5rem; }
+  .block-row { grid-template-columns: 1fr; }   /* rows stack on phones */
+}
 
 /* ── Bio page ───────────────────────────────────────────────── */
 
@@ -358,10 +486,9 @@ main {
 
 @media (max-width: 800px) {
   :root { --space: 1.25rem; }
-  .intro, .work-detail { grid-template-columns: 1fr; }
+  .intro { grid-template-columns: 1fr; }
   .intro { gap: var(--space); }
   .works-grid { grid-template-columns: repeat(2, 1fr); }
-  .work-info { position: static; }
 }
 
 @media (max-width: 480px) {

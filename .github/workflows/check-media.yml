@@ -1,0 +1,16 @@
+# Runs on every push: fails (red X on GitHub) if any image or video in the
+# site hasn't been converted by tools/optimize-media.py, or is very large.
+# It only checks — it never changes your files.
+name: Check media
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/optimize-media.py --check

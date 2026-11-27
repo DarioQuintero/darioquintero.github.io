@@ -119,10 +119,20 @@
   --font-display: "Times New Roman", Times, serif;
   --font-text: "Times New Roman", Times, serif;
 
-  --space: 2rem;        /* page margins and gaps */
-  --max-width: 1020px;  /* width of the centered column (intro + scratcher, bio) */
-  --edge: 1rem;         /* slim page margin: the work grid and work pages run
-                           out to this, lined up with the header */
+  /* Spacing scale. Every margin, padding and gap on the site uses one of
+     these four steps, each double the last, so spacing stays consistent:
+       xs  inside a small group: thumbnail ↔ title, heading ↔ its text
+       s   paragraphs, gaps between images in a row, top of the content
+       m   between works or media, between columns
+       l   between sections, bottom of the page                          */
+  --space-xs: 0.5rem;
+  --space-s:  1rem;
+  --space-m:  2rem;
+  --space-l:  4rem;
+
+  --edge: 5rem;         /* left/right page margin: header, footer, content
+                           and work pages all line up with it */
+  --max-width: 1020px;  /* width of the centered column (bio) */
 }
 
 * { box-sizing: border-box; }
@@ -154,13 +164,13 @@ img { display: block; width: 100%; height: auto; }
 main {
   flex: 1;
   width: 100%;
-  padding: 0 var(--edge) calc(var(--space) * 3);   /* full width, slim margins */
+  padding: 0 var(--edge) var(--space-l);
 }
 /* The bio page keeps the narrower centered column. */
 main.bio {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 var(--space) calc(var(--space) * 3);
+  padding: 0 var(--space-s) var(--space-l);
 }
 
 .placeholder {
@@ -179,14 +189,14 @@ main.bio {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 0.75rem var(--edge); 
+  padding: var(--space-s) var(--edge);
   border-top: 1px solid var(--line);   /* the line across the top of the sketch */
 
 }
 
 .site-name { font-size: 1.5rem; }
 
-.site-header nav { display: flex; gap: 1.5rem; }
+.site-header nav { display: flex; gap: var(--space-m); }
 
 /* ── Footer ─────────────────────────────────────────────────── */
 
@@ -194,28 +204,49 @@ main.bio {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding: 0.75rem var(--edge);
+  padding: var(--space-s) var(--edge);
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 0.9rem;
 }
-.site-footer nav { display: flex; gap: 1.5rem; }
+.site-footer nav { display: flex; gap: var(--space-m); }
 
 /* ── Intro: text + splash ───────────────────────────────────── */
 
-.intro {
+/* Home page: text + photo on the left, the scratcher on the right. */
+main.home {
   display: grid;
-  grid-template-columns: 1fr 3.35fr;   /* text column : splash column */
-  gap: 6rem;                           /* space between text and splash */
-  margin: var(--space) auto calc(var(--space) * 2);
-  max-width: calc(var(--max-width) - 2 * var(--space));   /* stays in the centered column */
+  grid-template-columns: 18rem 1fr;    /* width of the left column : the rest */
+  gap: var(--space-m);                 /* space between the left column and the scratcher */
+  align-items: start;
+  align-content: start;               /* the row is as tall as the scratcher, even if the window is taller */
+  padding-top: var(--space-s);         /* space below the header */
+}
+.intro-text p { margin: 0 0 var(--space-s); }   /* space below each paragraph */
+.intro-text a { color: revert; text-decoration: underline; }   /* normal blue/purple links */
+/* The text and photo column is as tall as the scratcher, and the photo
+   fills what's left below the text, so its bottom lines up with the
+   scratcher's bottom. (It's cropped from the center to fit.) */
+.intro-text {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+.intro-text p:last-of-type { margin-bottom: 0; }   /* the photo's margin sets the gap below the text */
+.intro-portrait {
+  width: 100%;           /* as wide as the text above it */
+  margin-top: var(--space-s);   /* space between the text and the photo */
+  flex: 1 1 0;           /* fill the rest of the column's height */
+  height: 0;             /* (so the photo never makes the column taller than the scratcher) */
+  min-height: 10rem;     /* but never shorter than this */
+  object-fit: cover;
 }
 
-.intro-text p { margin: 0 0 1em; }   /* space below each paragraph */
-.intro-text a { color: revert; text-decoration: underline; }   /* normal blue/purple links */
-
 .splash {
-  align-self: start;     /* lined up with the top of the text */
+  justify-self: center;     /* against the right edge, lined up with the header's menu */
+  /* As wide as the space allows, but never taller than the window
+     (the scratcher is 4:3, so its width is 4/3 of its height). */
+  width: min(100%, calc((100vh - 8rem) * 4 / 3));
 }
 
 /* ── Scratcher ──────────────────────────────────────────────── */
@@ -231,7 +262,7 @@ main.bio {
    (scratcher.js adds "is-ready"). */
 .scratcher > * {
   opacity: 0;
-  transition: opacity 0.2s;    /* fade-in length; 0s = appear instantly */
+  transition: opacity 0.0s;    /* fade-in length; 0s = appear instantly */
 }
 .scratcher.is-ready > * {
   opacity: 1;
@@ -264,7 +295,7 @@ main.bio {
   aspect-ratio: 4 / 3;         /* every thumbnail gets the same box shape */
   object-fit: cover;           /* fill the box, cropping whatever doesn't fit */
   object-position: center;     /* crop evenly from the middle */
-  margin-bottom: 0.3rem;       /* space between thumbnail and title */
+  margin-bottom: var(--space-xs);   /* space between thumbnail and title */
 }
 .scratch-cell span {
   font-size: 0.8rem;
@@ -299,21 +330,21 @@ main.bio {
 
 /* ── Work grid ──────────────────────────────────────────────── */
 
-.work { margin-top: var(--space); }   /* space between the header and "Selected Work:" */
+.work { margin-top: var(--space-s); }   /* space between the header and "Selected Work:" */
 
 .work-title {
-  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-size: 1.5rem;         /* same size as your name in the header */
   font-weight: 800;
   line-height: 1;
-  margin: 0 0 3rem;    /* space between the heading and the grid below it */
+  margin: 0 0 var(--space-s);   /* space between the heading and the tag buttons */
 }
 
 /* Tag buttons above the grid on the Work page */
 .tag-filter {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem 1.25rem;
-  margin: -1.5rem 0 2rem;      /* pulled up toward the heading a little */
+  gap: var(--space-xs) var(--space-m);   /* between lines (if they wrap) : between tags */
+  margin: 0 0 var(--space-m);            /* space between the tags and the grid */
 }
 .tag-filter button {
   font: inherit;
@@ -337,7 +368,7 @@ main.bio {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);   /* works per row */
-  gap: calc(var(--space) * 1.25) var(--space);
+  gap: var(--space-m) var(--space-s);   /* between rows : between columns */
 }
 
 .thumb {
@@ -346,7 +377,7 @@ main.bio {
 }
 .thumb img { height: 100%; object-fit: cover; }
 
-.caption { margin: 0.5rem 0 0; }
+.caption { margin: var(--space-xs) 0 0; }
 
 /* ── Single work page ─────────────────────────────────────────
    Under the usual header. Left: a narrow column that stays put (back
@@ -355,7 +386,7 @@ main.bio {
 
 .work-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 20rem) 1fr;   /* left column width : the rest */
+  grid-template-columns: minmax(220px, 26rem) 1fr;   /* left column width : the rest */
   max-width: none;            /* use the full window, unlike other pages */
   margin: 0;
   padding: 0;
@@ -363,21 +394,22 @@ main.bio {
 
 .work-side {
   position: sticky;           /* stays in place while the images scroll */
-  top: 0;
-  max-height: 100vh;
-  overflow-y: auto;           /* scrolls on its own if its text is very long */
+  /* If the text is taller than the window, it scrolls with the page until
+     its end comes into view, then stays put (height set in work.js). */
+  top: min(0px, calc(100vh - var(--side-height, 0px)));
   align-self: start;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
-  padding: 1.5rem 2rem 2rem 1rem;   /* left edge lines up with your name in the header */
+  gap: var(--space-m);
+  /* top, right (gap to the images), bottom, left (lines up with your name) */
+  padding: var(--space-s) var(--space-m) var(--space-l) var(--edge);
   font-size: 0.9rem;
 }
 .work-back { color: var(--muted); }
 .work-back:hover { color: var(--ink); }
 
 .work-text h1 { font-size: 1rem; font-weight: normal; margin: 0; }
-.work-text p { margin: 0 0 1em; }
+.work-text p { margin: 0 0 var(--space-s); }
 .work-text .work-year { color: var(--muted); }
 
 .work-prevnext { }                     /* sits right under the text */
@@ -385,8 +417,8 @@ main.bio {
 .work-media {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
-  padding: 1.5rem 1rem 2.5rem 0;    /* top lines up with the left column; right edge with the header */
+  gap: var(--space-m);              /* space between images and videos */
+  padding: var(--space-s) var(--edge) var(--space-l) 0;   /* top lines up with the left column; right edge with the header */
   min-width: 0;
   align-items: center;              /* images and videos centered in this area */
 }
@@ -407,14 +439,14 @@ main.bio {
   height: auto;
   max-height: calc(100vh - 5rem);   /* a tall image still fits on screen */
 }
-.block-media .caption { margin-top: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+.block-media .caption { margin-top: var(--space-xs); color: var(--muted); font-size: 0.9rem; }
 
 /* "row" blocks: images/videos side by side in equal columns */
 .block-row {
   align-self: stretch;              /* use the full width of the area */
   display: grid;
   grid-template-columns: repeat(var(--columns), 1fr);
-  gap: 1rem;                        /* space between the images in a row */
+  gap: var(--space-s);              /* space between the images in a row */
   align-items: start;
 }
 .block-row .block-media img,
@@ -425,7 +457,11 @@ main.bio {
 
 /* Text, headings and links (in the left column) */
 .block-text { max-width: 60ch; }
-.block-heading { font-size: 1rem; font-weight: normal; margin: 1.5em 0 0.5em; }
+.block-heading { font-size: 1rem; font-weight: normal; margin: var(--space-m) 0 var(--space-xs); }
+/* Lists in the page text */
+.block-list { max-width: 60ch; margin: 0 0 var(--space-s); padding-left: 1.5em; }
+.block-list li { margin: 0.15em 0; }
+.block-list a { text-decoration: underline; text-underline-offset: 0.2em; }
 .block-link a,
 .block-text a { text-decoration: underline; text-underline-offset: 0.2em; }
 
@@ -471,23 +507,24 @@ main.bio {
 /* Small screens: one column — the text first, then the images. */
 @media (max-width: 800px) {
   .work-layout { grid-template-columns: 1fr; }
-  .work-side { position: static; height: auto; padding: 1.5rem 1.25rem; gap: 1.5rem; }
-  .work-media { padding: 0 1.25rem 1.5rem; }
+  .work-side { position: static; height: auto; padding: var(--space-s) var(--edge); gap: var(--space-m); }
+  .work-media { padding: 0 var(--edge) var(--space-m); }
   .block-row { grid-template-columns: 1fr; }   /* rows stack on phones */
 }
 
 /* ── Bio page ───────────────────────────────────────────────── */
 
 .bio > * { max-width: 640px; }   /* keep lines a readable length */
-.bio h2 { font-size: 1rem; margin: 2.5rem 0 0.5rem; }
+.bio h2 { font-size: 1rem; margin: var(--space-m) 0 var(--space-xs); }
 .bio ul { list-style: none; padding: 0; margin: 0; }
 
 /* ── Small screens ──────────────────────────────────────────── */
 
 @media (max-width: 800px) {
-  :root { --space: 1.25rem; }
-  .intro { grid-template-columns: 1fr; }
-  .intro { gap: var(--space); }
+  :root { --edge: var(--space-s); }    /* slimmer page margins on phones */
+  main.home { grid-template-columns: 1fr; gap: var(--space-m); }   /* text and photo on top, scratcher below */
+  .splash { width: 100%; }
+  .intro-portrait { flex: none; height: auto; }   /* natural size when stacked */
   .works-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -522,3 +559,68 @@ main.bio {
     cursor: var(--cursor-grabbing);
   }
 }
+
+/* ── Page editor ──────────────────────────────────────────────
+   Only appears when the site is opened with  python tools/edit.py  */
+
+.editor-bar {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--ink);
+  font-size: 0.9rem;
+}
+.editor-bar button,
+.editor-chip {
+  font: inherit;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+.editor-bar button:hover,
+.editor-chip:hover { background: var(--ink); color: var(--bg); }
+.editor-status { color: var(--muted); }
+
+.editor-panel { margin-bottom: 1rem; }
+.editor-media { align-self: stretch; }       /* full width on the right */
+.editor-media-items {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  align-self: stretch;
+}
+.editor-media-items > * { max-width: 100%; }
+.editor-media-items > .placeholder,
+.editor-media-items > .block-media:has(.video-embed),
+.editor-media-items > .block-row { align-self: stretch; }
+
+.editor-label {
+  display: block;
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.editor-label span { margin-left: 0.5rem; }
+.editor-text {
+  display: block;
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.5rem;
+  border: 1px solid var(--muted);
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.editor-mono { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; }
+.editor-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; font-size: 0.8rem; }
+.editor-chip { padding: 0.1rem 0.5rem; }

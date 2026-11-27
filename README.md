@@ -5,13 +5,37 @@ Plain HTML, CSS and JavaScript. No build step: open index.html in a browser.
     index.html      home page (intro + scratcher)
     works.html      grid of all works
     work.html       one template page used for every work
-    bio.html        bio page
     style.css       all styling
-    js/works.js     THE LIST OF WORKS — edit this to add/change work, including
-                    each work's page content (text, images, videos, links)
+    js/works.js     THE LIST OF WORKS — title, year, thumbnail, tags, description
+    js/pages.js     what's on each work's page (edit it with tools/edit.py)
     js/main.js      builds the grid on works.html from the list
     js/work.js      fills in work.html for a single work
     works/          images and videos, one folder per work
+
+## Editing pages
+
+Run the page editor from this folder:
+
+    python tools/edit.py
+
+It opens the site in your browser (http://localhost:8000). Open any work and
+click "Edit page" (bottom right):
+
+- Left: the text, in Markdown — **bold**, *italic*, ## Heading,
+  [link](https://...), - lists. A blank line starts a new paragraph.
+- Right: images and videos, one per line. File names mean files in that
+  work's folder (works/<id>/). Click a file under the box to add it;
+  Shift+click puts it beside the previous one.
+    01.webp
+    02.webp "A caption"
+    03.webp | 04.webp          ← side by side
+    clip.mp4 loop              ← silent, repeating video
+    https://youtube.com/...    ← YouTube / Vimeo
+- Save (or Ctrl+S) writes to js/pages.js. Then commit and push as usual.
+
+The editor only exists on your computer while edit.py is running — it never
+appears on the live site. To add a NEW work, first add it to js/works.js
+(title, year, thumbnail...), then open its page and click "Edit page".
 
 ## Previewing locally
 
@@ -35,7 +59,7 @@ committing run:
 
     python tools/optimize-media.py
 
-It converts photos to .webp and videos to .webm (+ an .mp4 backup), shrinks
+It converts photos to .webp and videos to smaller .mp4 files, shrinks
 anything oversized, updates the references in the code for you, and moves
 the originals to _originals/ (ignored by git, so they're never uploaded).
 Use --dry-run to preview what it will do.

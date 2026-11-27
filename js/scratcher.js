@@ -8,7 +8,7 @@
 // different every time the page loads.
 //
 // Settings you might want to tweak:
-const COVER_TEXT = "Scratch.";            // text printed on the cover ("" for none)
+const COVER_TEXT = "Scratch for six\nportfolio pieces.";            // text printed on the cover ("" for none, \n for a new line)
 const COVER_TEXT_COLOR = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();;
 
 // What the cover is made of:
@@ -163,11 +163,18 @@ function drawWorks(target) {
     const label = cell.querySelector("span");
     if (label) {
       const lc = getComputedStyle(label);
-      const [lx, ly, , lh] = place(label.getBoundingClientRect());
+      const [lx, ly, lw, lh] = place(label.getBoundingClientRect());
+      // The thin line above the title
+      const line = parseFloat(lc.borderTopWidth) * s;
+      if (line) {
+        tctx.fillStyle = lc.borderTopColor;
+        tctx.fillRect(lx, ly, lw, line);
+      }
+      const above = line + parseFloat(lc.paddingTop) * s;   // line + space before the text
       tctx.fillStyle = lc.color;
       tctx.font = `${lc.fontStyle} ${lc.fontWeight} ${parseFloat(lc.fontSize) * s}px ${lc.fontFamily}`;
       tctx.textBaseline = "middle";
-      tctx.fillText(label.textContent, lx, ly + lh / 2);
+      tctx.fillText(label.textContent, lx, ly + above + (lh - above) / 2);
     }
   }
 }
@@ -447,8 +454,14 @@ function drawCover(fast = false) {
     ctx.font = `${para.fontStyle} ${para.fontWeight} ${48 * pixelScale()}px ${para.fontFamily}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    if (EMBOSS_TEXT && placed) drawEmbossedText(COVER_TEXT, w / 2, h / 2, placed);
-    else ctx.fillText(COVER_TEXT, w / 2, h / 2);
+    // "\n" in COVER_TEXT starts a new line; the lines are centered as a group.
+    const lines = COVER_TEXT.split("\n");
+    const lineHeight = 48 * pixelScale() * 1.2;
+    lines.forEach((line, i) => {
+      const y = h / 2 + (i - (lines.length - 1) / 2) * lineHeight;
+      if (EMBOSS_TEXT && placed) drawEmbossedText(line, w / 2, y, placed);
+      else ctx.fillText(line, w / 2, y);
+    });
   }
 
   // Keep only the parts that haven't been scratched.

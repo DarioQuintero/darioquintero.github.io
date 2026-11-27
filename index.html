@@ -11,49 +11,39 @@
   <header class="site-header">
     <a href="index.html" class="site-name">Dario Quintero</a>
     <nav>
+      <a href="index.html">Home</a>
       <a href="works.html">Work</a>
-      <a href="bio.html">Bio</a>
       <a data-email>Contact</a>
     </nav>
   </header>
 
-  <main>
-    <!-- Intro: short text on the left, splash image on the right -->
-    <section class="intro">
-      <div class="intro-text">
-        <p>Hello, I'm Dario. I am a Senior at Carnegie Mellon University pursuing a degree in Computer Science and Fine Art. I make art, write code, and conduct explorations which involve the two.</p>
-      </div>
+  <main class="home">
+    <!-- Left: intro text and photo -->
+    <div class="intro-text">
+      <p>Hello, I'm Dario. I am a Senior at Carnegie Mellon University pursuing a degree in Computer Science and Fine Art. I make art, write code, and conduct explorations which involve the two.</p>
+      <img class="intro-portrait" src="assets/images/portrait.webp" alt="Dario Quintero">
+    </div>
 
-      <!-- Scratch-off splash. Change data-rows / data-cols to change the
-           grid of works hidden underneath. It shows a random set of
-           (rows x cols) works from js/works.js on every load. -->
-      <div class="splash">
-        <div class="scratcher" data-rows="2" data-cols="3">
-          <div class="scratch-grid"></div>
-          <canvas class="scratch-cover grabbable" aria-label="Scratch to reveal works"></canvas>
-        </div>
+    <!-- Right: scratch-off splash. Change data-rows / data-cols to change
+         the grid of works hidden underneath. It shows a random set of
+         (rows x cols) works from js/works.js on every load. -->
+    <div class="splash">
+      <div class="scratcher" data-rows="2" data-cols="3">
+        <div class="scratch-grid"></div>
+        <canvas class="scratch-cover grabbable" aria-label="Scratch to reveal works"></canvas>
       </div>
-    </section>
-
-    <!-- Selected work: the same grid and tag buttons as works.html,
-         built by js/main.js from js/works.js -->
-    <section id="work" class="work">
-      <h2 class="work-title">Selected Work:</h2>
-      <nav id="tag-filter" class="tag-filter" aria-label="Filter works by tag"></nav>
-      <ul id="works-grid" class="works-grid"></ul>
-    </section>
+    </div>
   </main>
 
   <footer class="site-footer">
     <span>© 2026 Dario Quintero</span>
     <nav>
       <a data-email>Email</a>
-      <a href="https://www.instagram.com/">Instagram</a>
+      <a href="https://www.instagram.com/dario.r.quintero">Instagram</a>
     </nav>
   </footer>
 
   <script src="js/works.js"></script>
-  <script src="js/main.js"></script>
   <script src="js/scratcher.js"></script>
   <script src="js/site.js"></script>
 </body>

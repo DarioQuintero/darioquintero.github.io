@@ -1,2 +1,6 @@
 # Full-size originals kept by tools/optimize-media.py (not needed on the site)
 _originals/
+
+# Python leftovers
+__pycache__/
+todo.txt

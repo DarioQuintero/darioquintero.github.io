@@ -8,7 +8,7 @@
 // different every time the page loads.
 //
 // Settings you might want to tweak:
-const COVER_TEXT = "Scratch for six\nportfolio pieces.";            // text printed on the cover ("" for none, \n for a new line)
+const COVER_TEXT = "Scratch";            // text printed on the cover ("" for none, \n for a new line)
 const COVER_TEXT_COLOR = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();;
 
 // What the cover is made of:
@@ -64,6 +64,12 @@ const cols = Number(scratcher.dataset.cols) || 3;
 grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
+// Shape the whole scratcher so every tile keeps the thumbnails' 4:3 shape
+// (e.g. 3 columns x 2 rows of 4:3 tiles = 2:1). style.css uses this value
+// for both the scratcher's shape and its size on the page.
+const TILE_ASPECT = 4 / 3;        // width / height of one tile
+scratcher.parentElement.style.setProperty("--scratcher-aspect", (cols * TILE_ASPECT) / rows);
+
 // ── Keeping the card for the rest of the visit ──
 // The card (which works, what's been scratched) is saved in this tab's
 // sessionStorage, so leaving the home page and coming back shows it
@@ -98,22 +104,13 @@ for (const work of chosen) {
   const cell = document.createElement("a");
   cell.className = "scratch-cell";
   cell.href = `work.html?id=${work.id}`;
-  cell.innerHTML = `
-    ${work.thumbnail ? `<img src="${work.thumbnail}" alt="${work.title}" loading="eager" fetchpriority="high">` : `<div class="placeholder"></div>`}
-    <span>${work.title}</span>
-  `;
+  cell.setAttribute("aria-label", work.title);   // the title, for screen readers
+  cell.innerHTML = work.thumbnail
+    ? `<img src="${work.thumbnail}" alt="" loading="eager" fetchpriority="high">`
+    : `<div class="placeholder"></div>`;
   grid.appendChild(cell);
 }
 
-// Lines between the works, drawn ABOVE the cover so they always stay
-// sharp and can't be scratched away. It's an empty copy of the grid
-// whose cells draw their outlines into the 1px gaps.
-const lines = document.createElement("div");
-lines.className = "scratch-lines";
-lines.style.gridTemplateRows = grid.style.gridTemplateRows;
-lines.style.gridTemplateColumns = grid.style.gridTemplateColumns;
-for (let i = 0; i < rows * cols; i++) lines.appendChild(document.createElement("div"));
-scratcher.appendChild(lines);
 
 // ── 2. Draw the cover ───────────────────────────────────────
 //
@@ -681,8 +678,31 @@ function toCanvas(e) {
   };
 }
 
+// Hovering: the cover sits on top of the works, so the browser can't
+// tell which work the mouse is over. Work it out here and mark that tile
+// with "is-hovered" (style.css zooms its image). Never while scratching.
+let hovered = null;
+function setHovered(cell) {
+  if (cell === hovered) return;
+  if (hovered) hovered.classList.remove("is-hovered");
+  hovered = cell;
+  if (hovered) hovered.classList.add("is-hovered");
+}
+function cellAt(e) {
+  for (const cell of grid.children) {
+    const r = cell.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX < r.right && e.clientY >= r.top && e.clientY < r.bottom) return cell;
+  }
+  return null;
+}
+canvas.addEventListener("pointermove", (e) => {
+  setHovered(scratching || e.pointerType !== "mouse" ? null : cellAt(e));
+});
+canvas.addEventListener("pointerleave", () => setHovered(null));
+
 canvas.addEventListener("pointerdown", (e) => {
   scratching = true;
+  setHovered(null);
   canvas.setPointerCapture(e.pointerId);
   last = toCanvas(e);
   start = { x: e.clientX, y: e.clientY };

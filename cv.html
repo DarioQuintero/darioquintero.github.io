@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV — Dario Quintero</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="index.html" class="site-name"><img src="assets/images/logo.webp" alt="Dario Quintero"></a>
+    <nav>
+      <a href="index.html"><img src="assets/images/home.webp" alt="Home"></a>
+      <a href="works.html"><img src="assets/images/work.webp" alt="Work"></a>
+      <a href="cv.html"><img src="assets/images/cv.webp" alt="CV"></a>
+      <a data-email><img src="assets/images/contact.webp" alt="Contact"></a>
+    </nav>
+  </header>
+
+  <!-- Your CV / resume.
+       "Download PDF" downloads assets/Dario-Quintero-Resume.pdf. That PDF is
+       re-made from this page automatically whenever you commit a change to
+       cv.html or style.css. To re-make it by hand: python tools/make-resume-pdf.py
+       Styling is under "CV page" in style.css.
+
+       To edit: change the text below. To add a job, copy a whole
+       <div class="entry"> ... </div> block. To add a bullet, copy an <li> line. -->
+  <main class="cv">
+    <p class="cv-actions"><a href="assets/Dario-Quintero-Resume.pdf" download>Download PDF</a></p>
+
+    <article class="resume">
+      <header class="resume-head">
+        <h1>Dario Quintero</h1>
+        <p>
+          <span class="print-only">669-225-9829 · </span>
+          <a data-email="show"></a> ·
+          <a href="https://darioquintero.github.io">darioquintero.github.io</a>
+        </p>
+      </header>
+
+      <section>
+        <h2>Programmer, Artist</h2>
+        <p>Computer Science and Art student at Carnegie Mellon University with AAA game dev experience alongside several years of experience in Unity doing gameplay programming, working through the 3D asset pipeline, and leading student projects. I combine strong knowledge in algorithms, data structures, and systems with strong design sensibilities and prowess in computational and generative art.</p>
+      </section>
+
+      <section>
+        <h2>Work Experience</h2>
+
+        <div class="entry">
+          <div class="entry-head"><h3>Infinity Ward</h3><span>May 2026 – Aug 2026</span></div>
+          <p class="role">Animation Programming Engineer</p>
+          <ul>
+            <li>Worked on Call of Duty: Modern Warfare 4 during ship; wrote a physically simulated procedural animation node in C++ that adds inertial sway to characters standing on vehicles and moving platforms, using per-bone spring, inertial and suspension forces.</li>
+            <li>Re-architected the animation tree (blend tree) system across the engine pipeline so trees are authored and evaluated in phases (base pose, IK, physics), organizing a 44,000-node player tree and changing how all animation poses are calculated in the Call of Duty engine.</li>
+          </ul>
+        </div>
+        
+        <div class="entry">
+          <div class="entry-head"><h3>Allegheny Health Network Chill Room Project</h3><span>Feb 2025 – Aug 2025</span></div>
+          <p class="role">Software Engineer, Unity Mobile Idle Game</p>
+          <ul>
+            <li>Created a tool to generate Unity assets for villagers and associated villager-player dialogue interactions from a designer-facing spreadsheet.</li>
+            <li>Created a resource accumulation and upgrade system which enabled offline resource generation and progressive economy scaling.</li>
+            <li>Created a rhythm-based minigame with synchronous visuals and input processing.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head"><h3>Train of Thoughts</h3><span>May 2023 – Aug 2023</span></div>
+          <p class="role">Programmer, Artist</p>
+          <ul>
+            <li>Worked with the UE5 Material Editor, the MetaHuman system, and motion capture to create a short film using virtual production techniques.</li>
+            <li>Used photogrammetry to make a MetaHuman of the actor, then used a Rokoko suit to animate the MetaHuman.</li>
+            <li>Cleaned up mocap in Sequencer and created shaders to render the photoreal MetaHuman animation as an animated sketch.</li>
+          </ul>
+        </div>
+
+        <div class="entry">
+          <div class="entry-head"><h3>Thumbs Up</h3><span>Aug 2024 – Dec 2024</span></div>
+          <p class="role">Art Lead</p>
+          <ul>
+            <li>Modeled, textured, rigged, and animated an asymmetric hand character (a hand with arms and a face protruding from the thumb).</li>
+            <li>Created fighting game animations to the spec of frame data given by the designer.</li>
+            <li>Trained a team member to create high-quality sculpts to be retopologized in Blender.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="resume-split">
+        <section>
+          <h2>Education</h2>
+          <h3>Carnegie Mellon University</h3>
+          <p>Major: Computer Science and Fine Art<br>Graduation Year: 2027</p>
+        </section>
+
+        <section>
+          <h2>Extracurricular Activities</h2>
+          <h3>Carnegie Mellon Game Creation Society</h3>
+          <p>Chief of Operations<br>Pitched and led 3 game projects over the course of 3 semesters</p>
+          <h3>Gameheads</h3>
+          <p>Student at a nonprofit; created 3 video game projects over the course of 3 summers and 2 more short films in Unreal Engine</p>
+        </section>
+      </div>
+
+      <section>
+        <h2>Key Competencies</h2>
+        <!-- Listed left to right, row by row. Worded to match the terms
+             used in technical animator / animation programmer / technical
+             artist postings, so recruiter searches find them. -->
+        <ul class="resume-columns">
+          <li>C++</li>
+          <li>C#</li>
+          <li>Python</li>
+          <li>Unreal Engine 5 (UE5)</li>
+          <li>Unity</li>
+          <li>Blender</li>
+          <li>Runtime Animation Systems</li>
+          <li>Procedural Animation</li>
+          <li>Physics-Based Animation</li>
+          <li>Animation Blending &amp; Blend Trees</li>
+          <li>Rigging &amp; Skinning</li>
+          <li>Motion Capture &amp; MetaHuman</li>
+          <li>3D Math &amp; Simulation</li>
+          <li>Shaders &amp; Materials</li>
+          <li>Tools &amp; Pipeline Development</li>
+          <li>Substance Painter</li>
+          <li>Creative Coding</li>
+          <li>Git &amp; Version Control</li>
+        </ul>
+      </section>
+    </article>
+  </main>
+
+  <script src="js/site.js"></script>
+</body>
+</html>

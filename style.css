@@ -125,12 +125,13 @@
        s   paragraphs, gaps between images in a row, top of the content
        m   between works or media, between columns
        l   between sections, bottom of the page                          */
+  --space-xxs: 0rem;
   --space-xs: 0.5rem;
   --space-s:  1rem;
   --space-m:  2rem;
   --space-l:  4rem;
 
-  --edge: 5rem;         /* left/right page margin: header, footer, content
+  --edge: 5rem;         /* left/right page margin: header, content
                            and work pages all line up with it */
   --max-width: 1020px;  /* width of the centered column (bio) */
 }
@@ -144,8 +145,7 @@ body {
   color: var(--ink);
   font-family: var(--font-text);   /* everything defaults to the small-text font */
 
-  /* Header, main, footer stacked; main stretches so the footer
-     sits at the bottom of the window even on short pages. */
+  /* Header, then main below it, filling the rest of the window. */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -188,36 +188,32 @@ main.bio {
 .site-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;                 /* menu lined up with the middle of the logo */
   padding: var(--space-s) var(--edge);
   border-top: 1px solid var(--line);   /* the line across the top of the sketch */
 
 }
 
 .site-name { font-size: 1.5rem; }
+.site-name img {
+  height: 2.5rem;       /* size of the logo in the header */
+  width: auto;
+}
 
 .site-header nav { display: flex; gap: var(--space-m); }
-
-/* ── Footer ─────────────────────────────────────────────────── */
-
-.site-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: var(--space-s) var(--edge);
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.9rem;
+.site-header nav img {
+  height: 2rem;          /* size of the Home / Work / Contact images */
+  width: auto;
 }
-.site-footer nav { display: flex; gap: var(--space-m); }
+.site-header nav a:hover img { opacity: 0.6; }   /* fade a little on hover */
 
 /* ── Intro: text + splash ───────────────────────────────────── */
 
 /* Home page: text + photo on the left, the scratcher on the right. */
 main.home {
   display: grid;
-  grid-template-columns: 18rem 1fr;    /* width of the left column : the rest */
-  gap: var(--space-m);                 /* space between the left column and the scratcher */
+  grid-template-columns: 18rem 1fr;    /* width of the text column on the left : scratcher area */
+  gap: var(--space-m);                 /* space between the text column and the scratcher */
   align-items: start;
   align-content: start;               /* the row is as tall as the scratcher, even if the window is taller */
   padding-top: var(--space-s);         /* space below the header */
@@ -228,6 +224,8 @@ main.home {
    fills what's left below the text, so its bottom lines up with the
    scratcher's bottom. (It's cropped from the center to fit.) */
 .intro-text {
+  grid-column: 1;         /* on the left */
+  grid-row: 1;
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -243,16 +241,19 @@ main.home {
 }
 
 .splash {
-  justify-self: center;     /* against the right edge, lined up with the header's menu */
-  /* As wide as the space allows, but never taller than the window
-     (the scratcher is 4:3, so its width is 4/3 of its height). */
-  width: min(100%, calc((100vh - 8rem) * 4 / 3));
+  grid-column: 2;         /* on the right */
+  grid-row: 1;
+  justify-self: end;     /* centered in the space right of the text */
+  /* As wide as the space allows, but never taller than the window.
+     --scratcher-aspect (width / height) is set by scratcher.js from the
+     number of rows and columns. */
+  width: min(100%, calc((100vh - 8rem) * var(--scratcher-aspect, 2)));
 }
 
 /* ── Scratcher ──────────────────────────────────────────────── */
 
 .scratcher {
-  aspect-ratio: 4 / 3;         /* width / height — the scratcher's shape */
+  aspect-ratio: var(--scratcher-aspect, 2);   /* width / height, set by scratcher.js so tiles stay 4:3 */
   position: relative;          /* so the grid and cover can stack on top of each other */
   overflow: hidden;            /* keep the cover's shadow inside the scratcher */
   --scratch-cover: #3c97d0;    /* color of the scratch-off layer */
@@ -275,33 +276,32 @@ main.home {
   position: absolute;
   inset: 0;
   display: grid;
-  gap: 1px;                    /* thin lines between cells… */
-  background: var(--ink);      /* …drawn by this color showing through the gaps */
+  /* A thin white frame around every image: the same width at the outer
+     edge and between images. */
+  --frame: 1px;                /* width of the frame */
+  padding: var(--frame);
+  gap: var(--frame);
+  background: var(--bg);
 }
 
 .scratch-cell {
-  display: flex;
-  flex-direction: column;
+  display: block;
   min-width: 0;
   min-height: 0;
   background: var(--bg);
-  padding: 8%;                 /* white margin around each thumbnail + title */
-  justify-content: center;     /* thumbnail + title sit together, centered in the cell */
+  overflow: hidden;            /* the hover zoom stays inside the tile */
 }
-.scratch-cell img {
-  flex: 0 1 auto;              /* natural height, shrinks if the cell is short */
-  min-height: 0;
+/* Hovering a tile zooms its image in a little (scratcher.js adds
+   "is-hovered"; not while scratching). */
+.scratch-cell img { transition: transform 0.3s ease; }
+.scratch-cell.is-hovered img { transform: scale(1.05); }   /* how much it zooms */
+/* Each thumbnail fills its whole tile, cropped evenly from the middle. */
+.scratch-cell img,
+.scratch-cell .placeholder {
   width: 100%;
-  aspect-ratio: 4 / 3;         /* every thumbnail gets the same box shape */
-  object-fit: cover;           /* fill the box, cropping whatever doesn't fit */
-  object-position: center;     /* crop evenly from the middle */
-  margin-bottom: var(--space-xs);   /* space between thumbnail and title */
-}
-.scratch-cell span {
-  font-size: 0.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* The scratch-off layer on top */
@@ -345,6 +345,15 @@ main.home {
   flex-wrap: wrap;
   gap: var(--space-xs) var(--space-m);   /* between lines (if they wrap) : between tags */
   margin: 0 0 var(--space-m);            /* space between the tags and the grid */
+  align-items: center;
+}
+/* Thin gray line running from the last tag to the right edge */
+.tag-filter::after {
+  content: "";
+  flex: 1;
+  min-width: var(--space-m);
+  height: 1px;
+  background: #bbb;                      /* color of the line */
 }
 .tag-filter button {
   font: inherit;
@@ -375,7 +384,11 @@ main.home {
   aspect-ratio: 4 / 3;         /* thumbnail shape, same as on the scratcher */
   overflow: hidden;
 }
-.thumb img { height: 100%; object-fit: cover; }
+.thumb img { height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+/* Hovering a work zooms its thumbnail in a little, like on the scratcher. */
+@media (hover: hover) {
+  .works-grid a:hover .thumb img { transform: scale(1.05); }   /* how much it zooms */
+}
 
 .caption { margin: var(--space-xs) 0 0; }
 
@@ -402,7 +415,7 @@ main.home {
   flex-direction: column;
   gap: var(--space-m);
   /* top, right (gap to the images), bottom, left (lines up with your name) */
-  padding: var(--space-s) var(--space-m) var(--space-l) var(--edge);
+  padding: var(--space-xs) var(--space-m) var(--space-l) var(--edge);
   font-size: 0.9rem;
 }
 .work-back { color: var(--muted); }
@@ -518,13 +531,113 @@ main.home {
 .bio h2 { font-size: 1rem; margin: var(--space-m) 0 var(--space-xs); }
 .bio ul { list-style: none; padding: 0; margin: 0; }
 
+/* ── CV page ──────────────────────────────────────────────────
+   cv.html is laid out like a one-page resume, and the same page prints
+   to the PDF (the @media print part at the bottom). */
+
+.cv { padding-top: var(--space-s); }
+.cv-actions { margin: 0 0 var(--space-m); }
+.cv-actions a {
+  display: inline-block;
+  font: inherit;
+  padding: 0.3em 0.9em;
+  border: 1px solid var(--ink);
+  background: var(--bg);
+  cursor: pointer;
+}
+.cv-actions a:hover { background: var(--ink); color: var(--bg); }
+
+.resume {
+  max-width: 8.5in;                  /* the width of a letter page */
+  font-family: "Times New Roman", Times, serif;   /* resume font */
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.resume p { margin: 0; }
+.resume a { text-decoration: none; }
+.resume h1 { font-size: 2.6rem; font-weight: bold; line-height: 1.1; margin: 0 0 0.3rem; }
+.resume h2 {                         /* section titles: TECHNICAL ARTIST, … */
+  font-size: 0.95rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.6rem;
+}
+.resume h3 { font-size: 1em; font-weight: bold; margin: 0; }
+.resume h1, .resume h2, .resume h3 { font-family: inherit; }   /* same font as the text, not the site's heading font */
+.resume section,
+.resume-split {
+  border-top: 1px solid var(--ink);  /* the line above each section */
+  padding: 1rem 0;
+}
+.resume-head { padding-bottom: 1.5rem; }
+.resume ul { margin: 0.15rem 0 0; padding-left: 1.5em; }
+.resume-columns {                    /* Key Competencies: three columns, filled row by row */
+  list-style: none;
+  padding-left: 0 !important;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.entry + .entry { margin-top: 0.9rem; }
+.entry-head { display: flex; justify-content: space-between; gap: 1rem; }
+.entry-head h3 { font-style: italic; }
+.entry-head span { font-weight: bold; white-space: nowrap; }
+.role { font-weight: bold; }
+
+/* Education | Extracurricular, side by side with a line between */
+.resume-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+}
+.resume-split section { border-top: 0; }
+.resume-split section + section { border-left: 1px solid var(--ink); padding-left: 1rem; }
+.resume-split h3 + p { margin-bottom: 0.8rem; }
+
+.print-only { display: none; }       /* phone number: only on the PDF, not the website */
+
+@media (max-width: 600px) {          /* phones */
+  .resume h1 { font-size: 2rem; }
+  .resume-columns { grid-template-columns: 1fr 1fr; }
+  .entry-head { flex-direction: column; gap: 0; }
+  .resume-split { grid-template-columns: 1fr; }
+  .resume-split section + section { border-left: 0; padding-left: 0; border-top: 1px solid var(--ink); }
+}
+
+/* The PDF: only the resume, sized to fit one letter page. */
+@page { size: letter; margin: 0.5in 0.65in; }
+@media print {
+  .site-header, .cv-actions { display: none; }
+  body { min-height: 0; }
+  main.cv { padding: 0; }
+  .resume { max-width: none; font-size: 9.5pt; line-height: 1.3; color: #000; }
+  .resume h1 { font-size: 26pt; }
+  .resume h2 { font-size: 9.5pt; margin-bottom: 0.45rem; }
+  .resume section { padding: 0.55rem 0; }
+  .resume-head { padding-bottom: 0.7rem; }
+  .entry + .entry { margin-top: 0.45rem; }
+  .print-only { display: inline; }
+}
+
 /* ── Small screens ──────────────────────────────────────────── */
 
 @media (max-width: 800px) {
   :root { --edge: var(--space-s); }    /* slimmer page margins on phones */
+  /* Smaller header images so they fit; on very narrow screens the menu
+     moves under the logo instead of running off the edge. */
+  .site-header { flex-wrap: wrap; row-gap: var(--space-xs); }
+  .site-name img { height: 1.75rem; }
+  .site-header nav { gap: var(--space-s); }
+  .site-header nav img { height: 1.5rem; }
   main.home { grid-template-columns: 1fr; gap: var(--space-m); }   /* text and photo on top, scratcher below */
-  .splash { width: 100%; }
+  .splash { width: 100%; grid-column: auto; grid-row: auto; }   /* one column on phones */
   .intro-portrait { flex: none; height: auto; }   /* natural size when stacked */
+  /* Phones: text, then the scratcher, then the photo. (display: contents
+     lets the text and photo be placed separately, around the scratcher.) */
+  .intro-text { display: contents; }
+  .intro-text p { order: 1; }
+  .splash { order: 2; }
+  .intro-portrait { order: 3; margin-top: 0; }
   .works-grid { grid-template-columns: repeat(2, 1fr); }
 }
 

@@ -13,3 +13,8 @@ for (const link of document.querySelectorAll("[data-email]")) {
   link.href = `mailto:${EMAIL}`;
   if (link.dataset.email === "show") link.textContent = EMAIL;
 }
+
+// A button with  data-print  opens the print dialog (CV page: "Save as PDF").
+for (const button of document.querySelectorAll("[data-print]")) {
+  button.addEventListener("click", () => window.print());
+}

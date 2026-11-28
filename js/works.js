@@ -25,6 +25,17 @@
 // ─────────────────────────────────────────────────────────────
 
 const works = [
+    
+    //--------------- ART ---------------\\
+
+  {
+    id: "club-stamps",
+    title: "Club Stamps",
+    year: "2026",
+    thumbnail: "works/club-stamps/hand-back-flash.webp",
+    description: "A series of stamps and drawings.",
+    tags: ["art"],
+  },
   {
     id: "trail-cam-studies",
     title: "Trail Cam Studies",
@@ -32,14 +43,6 @@ const works = [
     thumbnail: "works/trail-cam-studies/thumbnail.webp",
     description: "A collection of camera trap photos from the Caltech Southwest Trailcams dataset.",
     tags: ["art"],
-  },
-  {
-    id: "thumbs-up",
-    title: "Thumbs Up",
-    year: "2024",
-    thumbnail: "works/thumbs-up/thumbnail.webp",
-    description: "A Unity-developed video game.",
-    tags: ["game development"]
   },
   {
     id: "core-apple",
@@ -53,33 +56,36 @@ const works = [
     id: "comfyui-abstractions",
     title: "ComfyUI Abstractions",
     year: "2024",
-    thumbnail: "works/comfyui-abstractions/constellation-2.webp",
+    thumbnail: "works/comfyui-abstractions/constellation-1.webp",
     description: "Images made by chaining together diffusion models.",
     tags: ["art"],
   },
+
+  //--------------- GAME DEVELOPMENT ---------------\\
+  
   {
-    id: "train-of-thoughts",
-    title: "Train Of Thoughts",
-    year: "2023",
-    thumbnail: "works/train-of-thoughts/thumbnail.webp",
-    description: "Short film made with Unreal Engine using virtual production techniques.",
-    tags: ["game development"],
+    id: "cod-mw4",
+    title: "Call of Duty: Modern Warfare 4",
+    year: "2026",
+    thumbnail: "works/cod-mw4/thumbnail.webp",
+    description: "Animation Programmer. ",
+    tags: ["game dev"],
   },
   {
-    id: "automajumper",
-    title: "Automajumper",
-    year: "2023",
-    thumbnail: "works/automajumper/thumbnail.webp",
-    description: "Placeholder work.",
-    tags: ["game development"],
+    id: "ahn-chill-room",
+    title: "AHN Chill Room: Pocket Edition",
+    year: "2025",
+    thumbnail: "works/ahn-chill-room/thumbnail.png",
+    description: "Unity Game Development",
+    tags: ["game dev"],
   },
   {
-    id: "blink",
-    title: "Blink",
+    id: "thumbs-up",
+    title: "Thumbs Up",
     year: "2024",
-    thumbnail: "https://www.youtube.com/watch?v=YBoHuS8315o",
-    description: "A project made in p5js with Mediapipe Face tracking.",
-    tags: ["art"],
+    thumbnail: "works/thumbs-up/thumbnail.webp",
+    description: "A Unity-developed video game.",
+    tags: ["game dev"]
   },
   {
     id: "chicana-soul",
@@ -87,7 +93,23 @@ const works = [
     year: "2024",
     thumbnail: "https://www.youtube.com/watch?v=hG5lHw77Yqg",
     description: "A short film with VFX made using Unreal Engine, Blender, and After Effects. ",
-    tags: ["game development"],
+    tags: ["game dev"],
+  },
+  {
+    id: "train-of-thoughts",
+    title: "Train of Thoughts",
+    year: "2023",
+    thumbnail: "works/train-of-thoughts/thumbnail.webp",
+    description: "Short film made with Unreal Engine using virtual production techniques.",
+    tags: ["game dev"],
+  },
+  {
+    id: "automajumper",
+    title: "Automajumper",
+    year: "2023",
+    thumbnail: "works/automajumper/thumbnail.webp",
+    description: "A Unity-developed video game.",
+    tags: ["game dev"],
   },
 ];
 

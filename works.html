@@ -9,31 +9,23 @@
 <body>
 
   <header class="site-header">
-    <a href="index.html" class="site-name">Dario Quintero</a>
+    <a href="index.html" class="site-name"><img src="assets/images/logo.webp" alt="Dario Quintero"></a>
     <nav>
-      <a href="index.html">Home</a>
-      <a href="works.html">Work</a>
-      <a data-email>Contact</a>
+      <a href="index.html"><img src="assets/images/home.webp" alt="Home"></a>
+      <a href="works.html"><img src="assets/images/work.webp" alt="Work"></a>
+      <a href="cv.html"><img src="assets/images/cv.webp" alt="CV"></a>
+      <a data-email><img src="assets/images/contact.webp" alt="Contact"></a>
     </nav>
   </header>
 
   <main>
     <!-- Works: filled in automatically from js/works.js -->
     <section class="work">
-      <h2 class="work-title">Selected Work:</h2>
       <!-- Tag buttons, built from the works' tags in js/works.js -->
       <nav id="tag-filter" class="tag-filter" aria-label="Filter works by tag"></nav>
       <ul id="works-grid" class="works-grid"></ul>
     </section>
   </main>
-
-  <footer class="site-footer">
-    <span>© 2026 Dario Quintero</span>
-    <nav>
-      <a data-email>Email</a>
-      <a href="https://www.instagram.com/">Instagram</a>
-    </nav>
-  </footer>
 
   <script src="js/works.js"></script>
   <script src="js/main.js"></script>

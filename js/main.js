@@ -1,6 +1,5 @@
-// Builds the grid of all works from the list in works.js — on works.html
-// and below the intro on the home page —
-// with a row of tag buttons above it to show only works with that tag.
+// Builds the grid of works on works.html from the list in works.js, with a
+// row of tag buttons above it. One tag is shown at a time (no "All").
 //
 // The chosen tag is kept in the address, e.g. works.html?tag=code, so a
 // filtered view can be linked to or bookmarked.
@@ -41,11 +40,10 @@ function showWorks(tag) {
   }
 }
 
-// The buttons: "All", then one per tag.
-filter.innerHTML = [
-  `<button type="button" data-tag="">All</button>`,
-  ...allTags.map((t) => `<button type="button" data-tag="${t}">${t}</button>`),
-].join("");
+// One button per tag. There's no "All": each category is viewed on its own.
+filter.innerHTML = allTags
+  .map((t) => `<button type="button" data-tag="${t}">${t}</button>`)
+  .join("");
 
 filter.addEventListener("click", (e) => {
   const button = e.target.closest("button");
@@ -53,12 +51,12 @@ filter.addEventListener("click", (e) => {
   const tag = button.dataset.tag;
   // Update the address without reloading (so Back still works sensibly).
   const url = new URL(location.href);
-  if (tag) url.searchParams.set("tag", tag);
-  else url.searchParams.delete("tag");
+  url.searchParams.set("tag", tag);
   history.replaceState(null, "", url);
   showWorks(tag);
 });
 
-// Start with the tag from the address, if it's a real one.
+// Start with the tag from the address, if it's a real one; otherwise the
+// first tag (alphabetically).
 const startTag = new URLSearchParams(location.search).get("tag");
-showWorks(allTags.includes(startTag) ? startTag : "");
+showWorks(allTags.includes(startTag) ? startTag : allTags[0]);

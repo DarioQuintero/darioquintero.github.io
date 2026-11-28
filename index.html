@@ -9,26 +9,26 @@
 <body>
 
   <header class="site-header">
-    <a href="index.html" class="site-name">Dario Quintero</a>
+    <a href="index.html" class="site-name"><img src="assets/images/logo.webp" alt="Dario Quintero"></a>
     <nav>
-      <a href="index.html">Home</a>
-      <a href="works.html">Work</a>
-      <a data-email>Contact</a>
+      <a href="index.html"><img src="assets/images/home.webp" alt="Home"></a>
+      <a href="works.html"><img src="assets/images/work.webp" alt="Work"></a>
+      <a href="cv.html"><img src="assets/images/cv.webp" alt="CV"></a>
+      <a data-email><img src="assets/images/contact.webp" alt="Contact"></a>
     </nav>
   </header>
 
   <main class="home">
     <!-- Left: intro text and photo -->
     <div class="intro-text">
-      <p>Hello, I'm Dario. I am a Senior at Carnegie Mellon University pursuing a degree in Computer Science and Fine Art. I make art, write code, and conduct explorations which involve the two.</p>
-      <img class="intro-portrait" src="assets/images/portrait.webp" alt="Dario Quintero">
+      <p>Hello, I'm Dario. I am a senior at Carnegie Mellon University pursuing a degree in Computer Science and Fine Art. I make art and write code.</p>
     </div>
 
     <!-- Right: scratch-off splash. Change data-rows / data-cols to change
          the grid of works hidden underneath. It shows a random set of
          (rows x cols) works from js/works.js on every load. -->
     <div class="splash">
-      <div class="scratcher" data-rows="2" data-cols="3">
+      <div class="scratcher" data-rows="3" data-cols="3">
         <div class="scratch-grid"></div>
         <canvas class="scratch-cover grabbable" aria-label="Scratch to reveal works"></canvas>
       </div>

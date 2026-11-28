@@ -172,8 +172,15 @@ def convert_image(src, dry_run):
         return dest
     with Image.open(src) as im:
         if getattr(im, "is_animated", False):            # animated GIF -> animated WebP
+            # Keep each frame's own timing (GIF frames can all differ).
+            durations = []
+            for i in range(im.n_frames):
+                im.seek(i)
+                durations.append(im.info.get("duration") or 100)
+            im.seek(0)
             # Lossless: for GIFs it's much smaller than lossy (and exact).
-            im.save(dest, "WEBP", save_all=True, lossless=True, quality=80, method=4)
+            im.save(dest, "WEBP", save_all=True, duration=durations, loop=im.info.get("loop", 0),
+                    lossless=True, quality=80, method=4)
         else:
             im = ImageOps.exif_transpose(im)              # respect phone-camera rotation
             im.thumbnail((MAX_IMAGE_SIZE, MAX_IMAGE_SIZE), Image.LANCZOS)

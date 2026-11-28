@@ -1,0 +1,22 @@
+#!/bin/sh
+# Before each commit: if cv.html or style.css is being committed, re-render
+# the downloadable resume (assets/Dario-Quintero-Resume.pdf) and include it.
+#
+# Turned on by this line in .git/config, under [core]:
+#     hooksPath = .githooks
+# (or run once:  git config core.hooksPath .githooks )
+
+if git diff --cached --name-only | grep -qE '^(cv\.html|style\.css)$'; then
+  for PY in py python3 python; do
+    if command -v "$PY" >/dev/null 2>&1 && "$PY" -c "" >/dev/null 2>&1; then
+      if "$PY" tools/make-resume-pdf.py; then
+        git add assets/Dario-Quintero-Resume.pdf
+      else
+        echo "Resume PDF not updated (see above). Committing anyway."
+      fi
+      exit 0
+    fi
+  done
+  echo "Python not found, so the resume PDF wasn't updated. Committing anyway."
+fi
+exit 0

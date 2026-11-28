@@ -48,7 +48,7 @@ const works = [
     id: "fence-collages",
     title: "Fence Collages",
     year: "2026",
-    thumbnail: "works/fence-collages/3-downsample.jpg",
+    thumbnail: "works/fence-collages/3-downsample.webp",
     description: "A series of collages made computationally.",
     tags: ["art"],
   },

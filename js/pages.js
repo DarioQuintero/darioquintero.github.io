@@ -84,6 +84,6 @@ const pages = {
   },
   "fence-collages": {
     "text": "",
-    "media": "3-downsample.jpg\n3-sort.jpg\n"
+    "media": "3-downsample.webp\n3-sort.webp\n"
   }
 };

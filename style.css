@@ -194,7 +194,7 @@ main.bio {
   padding: var(--space-s) var(--edge);
   border-top: 1px solid var(--line);   /* the line across the top of the sketch */
   /* Thin gray line along the bottom, between the page margins */
-  background: linear-gradient(#000000, #bbb) bottom / calc(100% - 2 * var(--edge)) 1px no-repeat;
+/*  background: linear-gradient(#000000, #bbb) bottom / calc(100% - 2 * var(--edge)) 1px no-repeat; */
   
 }
 .site-header-line{
@@ -257,19 +257,27 @@ main.home {
 .splash {
   grid-column: 2;         /* on the right */
   grid-row: 1;
-  justify-self: end;     /* centered in the space right of the text */
-  /* As wide as the space allows, but short enough that the whole page fits
-     in the window with no scrolling. 7rem = the header plus the space above
-     and below the scratcher; raise it if you make the header taller.
-     --scratcher-aspect (width / height) is set by scratcher.js from the
-     number of rows and columns. */
-  width: min(100%, calc((100vh - 7rem) * var(--scratcher-aspect, 2)));
+  /* Exactly as tall as the text + photo column, so the scratcher's top and
+     bottom line up with the text's top and the photo's bottom. (container-type: size
+     stops the scratcher from making the row taller; the row's height comes
+     from the text column, and the splash stretches to fill it.) */
+  align-self: stretch;
+  container-type: size;   /* (lets the scratcher size itself from this box) */
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;   /* scratcher against the right edge */
+  align-items: flex-end;       /* if the window is too narrow for full height, keep the bottoms lined up */
+}
+.splash .scratcher {
+  /* As big as fits in the splash without changing shape: full height,
+     unless that would make it wider than the space available. */
+  width: min(100cqw, 100cqh * var(--scratcher-aspect, 2));
 }
 
 /* ── Scratcher ──────────────────────────────────────────────── */
 
 .scratcher {
-  aspect-ratio: var(--scratcher-aspect, 2);   /* width / height, set by scratcher.js so tiles stay 4:3 */
+  aspect-ratio: var(--scratcher-aspect, 2);   /* width / height, set by scratcher.js from the tile shape */
   position: relative;          /* so the grid and cover can stack on top of each other */
   overflow: hidden;            /* keep the cover's shadow inside the scratcher */
   --scratch-cover: #3c97d0;    /* color of the scratch-off layer */
@@ -294,7 +302,7 @@ main.home {
   display: grid;
   /* A thin white frame around every image: the same width at the outer
      edge and between images. */
-  --frame: 1px;                /* width of the frame */
+  --frame: 72px;                /* width of the frame */
   padding: var(--frame);
   gap: var(--frame);
   background: var(--bg);
@@ -305,12 +313,26 @@ main.home {
   min-width: 0;
   min-height: 0;
   background: var(--bg);
-  overflow: hidden;            /* the hover zoom stays inside the tile */
+  overflow: hidden;
+  position: relative;          /* for the hover tint below */
 }
-/* Hovering a tile zooms its image in a little (scratcher.js adds
-   "is-hovered"; not while scratching). */
-.scratch-cell img { transition: transform 0.3s ease; }
-.scratch-cell.is-hovered img { transform: scale(1.05); }   /* how much it zooms */
+/* Hovering a work turns it a little whiter: a white layer over the image.
+   Scratcher tiles get "is-hovered" from scratcher.js; Work page thumbnails
+   use normal :hover. */
+.scratch-cell::after,
+.thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  transition: opacity 0s;      /* fade-in time (0s = instant) */
+  pointer-events: none;
+}
+.scratch-cell.is-hovered::after,
+.works-grid a:hover .thumb::after {
+  opacity: 0.35;               /* how white it gets (0 = none, 1 = fully white) */
+}
 /* Each thumbnail fills its whole tile, cropped evenly from the middle. */
 .scratch-cell img,
 .scratch-cell .placeholder {
@@ -333,6 +355,16 @@ main.home {
      cover's shape, so it shows along the edges of every scratch.
      drop-shadow(right, down, blur, color) */
   filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* A thin shadow just inside the scratcher's edges, over the cover and the
+   works alike. The outer edge stays hard. (blur, color) */
+.scratcher::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  pointer-events: none;        /* scratching passes straight through it */
 }
 
 /* Open hand on hover, closed hand while the mouse button is held.
@@ -387,18 +419,26 @@ main.home {
   grid-template-columns: repeat(2, 1fr);   /* works per row */
   gap: var(--space-m) var(--space-s);   /* between rows : between columns */
 }
+/* Each work sits small in the middle of its own 4:3 space, with white
+   around it, like a print hung on a wall. */
+.works-grid li {
+  --thumb-size: 50%;           /* thumbnail width, as a share of its space */
+  aspect-ratio: 4 / 3;         /* shape of each work's space */
+  display: flex;
+  align-items: center;         /* thumbnail + title centered up and down… */
+  justify-content: center;     /* …and left and right */
+}
+.works-grid li > a { width: var(--thumb-size); }
 
 .thumb {
   aspect-ratio: 4 / 3;         /* thumbnail shape, same as on the scratcher */
   overflow: hidden;
+  position: relative;          /* for the hover tint */
 }
-.thumb img { height: 100%; object-fit: cover; transition: transform 0.3s ease; }
-/* Hovering a work zooms its thumbnail in a little, like on the scratcher. */
-@media (hover: hover) {
-  .works-grid a:hover .thumb img { transform: scale(1.05); }   /* how much it zooms */
-}
+.thumb img { height: 100%; object-fit: cover; }
 
 .caption { margin: var(--space-xs) 0 0; }
+.works-grid a:hover { color: var(--ink); }   /* titles stay black on hover */
 
 /* ── Single work page ─────────────────────────────────────────
    Under the usual header. Left: a narrow column that stays put (back
@@ -638,7 +678,8 @@ main.home {
   .site-header nav { gap: var(--space-s); }
   .site-header nav img { height: 1.5rem; }
   main.home { grid-template-columns: 1fr; gap: var(--space-m); }   /* text and photo on top, scratcher below */
-  .splash { width: 100%; grid-column: auto; grid-row: auto; }   /* one column on phones */
+  .splash { width: 100%; grid-column: auto; grid-row: auto; container-type: normal; display: block; }   /* one column on phones */
+  .splash .scratcher { width: 100%; }
   .intro-portrait { width: 100%; height: auto; aspect-ratio: auto; }   /* phones: full width, whole photo */
   /* Phones: text, then the scratcher, then the photo. (display: contents
      lets the text and photo be placed separately, around the scratcher.) */
@@ -651,6 +692,7 @@ main.home {
 
 @media (max-width: 480px) {
   .works-grid { grid-template-columns: 1fr; }
+  .works-grid li { --thumb-size: 80%; }   /* one column on phones: bigger thumbnails */
 }
 
 /* ── Custom cursors ─────────────────────────────────────────────

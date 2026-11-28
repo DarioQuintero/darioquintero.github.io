@@ -33,7 +33,7 @@ const COVER_TINT = .01;           // 0–1: how strongly it's tinted gray
 // The scratch is a round brush whose size changes with how fast the
 // cursor moves (sizes in screen pixels):
 const BRUSH_MIN = 1;              // width when moving slowly
-const BRUSH_MAX = 20;              // width when moving fast
+const BRUSH_MAX = 5;              // width when moving fast
 const SPEED_FOR_MAX = 5;        // speed (pixels per millisecond) that reaches BRUSH_MAX.
                                   //   lower = reaches max size more easily
 const FASTER_IS_BIGGER = true;    // false = fast strokes get thinner instead
@@ -64,10 +64,10 @@ const cols = Number(scratcher.dataset.cols) || 3;
 grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-// Shape the whole scratcher so every tile keeps the thumbnails' 4:3 shape
-// (e.g. 3 columns x 2 rows of 4:3 tiles = 2:1). style.css uses this value
+// Shape the whole scratcher so every tile has the shape below
+// (e.g. 3 columns x 3 rows of square tiles = square). style.css uses this value
 // for both the scratcher's shape and its size on the page.
-const TILE_ASPECT = 4 / 3;        // width / height of one tile
+const TILE_ASPECT = 1;            // width / height of one tile (1 = square, 4 / 3 = landscape)
 scratcher.parentElement.style.setProperty("--scratcher-aspect", (cols * TILE_ASPECT) / rows);
 
 // ── Keeping the card for the rest of the visit ──
@@ -680,7 +680,7 @@ function toCanvas(e) {
 
 // Hovering: the cover sits on top of the works, so the browser can't
 // tell which work the mouse is over. Work it out here and mark that tile
-// with "is-hovered" (style.css zooms its image). Never while scratching.
+// with "is-hovered" (style.css tints it white). Never while scratching.
 let hovered = null;
 function setHovered(cell) {
   if (cell === hovered) return;

@@ -81,5 +81,9 @@ const pages = {
   "ahn-chill-room": {
     "text": "Chill Room: Pocket Edition is a mobile app for iOS and Android built in partnership with Allegheny Health Network’s Chill Project. The mission of the project is to equip middle school students with the tools they need to navigate their emotions and strengthen their ability to identify, discuss, and react to stress with resilience.\n\nOver Summer 2025 I worked at Carnegie Mellon's Center for Transformational Play as a developer for this project. Notable features I worked on include:\n- A tool to generate Unity assets for villagers and associated villager-player dialogue interactions from a designer-facing spreadsheet.\n- A resource accumulation and upgrade system which enabled offline resource generation and progressive economy scaling.\n- A rhythm-based minigame with synchronous visuals and input processing.\n\n[Read more about the project here](https://www.cmu.edu/ctp/projects/ahn_chill_room.html) ",
     "media": "thumbnail.webp\nhttps://www.cmu.edu/ctp/projects/chill_room_trailer.mp4\n"
+  },
+  "fence-collages": {
+    "text": "",
+    "media": "3-downsample.jpg\n3-sort.jpg\n"
   }
 };

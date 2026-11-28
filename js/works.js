@@ -37,19 +37,27 @@ const works = [
     tags: ["art"],
   },
   {
-    id: "trail-cam-studies",
-    title: "Trail Cam Studies",
-    year: "2024",
-    thumbnail: "works/trail-cam-studies/thumbnail.webp",
-    description: "A collection of camera trap photos from the Caltech Southwest Trailcams dataset.",
-    tags: ["art"],
-  },
-  {
     id: "core-apple",
     title: "Core Apple",
     year: "2026",
     thumbnail: "works/core-apple/thumbnail.webp",
     description: `A program written in C++ which simulates sand-like behaviors in the pixels of an image. `,
+    tags: ["art"],
+  },
+  {
+    id: "fence-collages",
+    title: "Fence Collages",
+    year: "2026",
+    thumbnail: "works/fence-collages/3-downsample.jpg",
+    description: "A series of collages made computationally.",
+    tags: ["art"],
+  },
+  {
+    id: "trail-cam-studies",
+    title: "Trail Cam Studies",
+    year: "2024",
+    thumbnail: "works/trail-cam-studies/thumbnail.webp",
+    description: "A collection of camera trap photos from the Caltech Southwest Trailcams dataset.",
     tags: ["art"],
   },
   {
@@ -69,7 +77,7 @@ const works = [
     year: "2026",
     thumbnail: "works/cod-mw4/thumbnail.webp",
     description: "Animation Programmer. ",
-    tags: ["game dev"],
+    tags: ["game development"],
   },
   {
     id: "ahn-chill-room",
@@ -77,7 +85,7 @@ const works = [
     year: "2025",
     thumbnail: "works/ahn-chill-room/thumbnail.webp",
     description: "Unity Game Development",
-    tags: ["game dev"],
+    tags: ["game development"],
   },
   {
     id: "thumbs-up",
@@ -85,7 +93,7 @@ const works = [
     year: "2024",
     thumbnail: "works/thumbs-up/thumbnail.webp",
     description: "A Unity-developed video game.",
-    tags: ["game dev"]
+    tags: ["game development"]
   },
   {
     id: "chicana-soul",
@@ -93,7 +101,7 @@ const works = [
     year: "2024",
     thumbnail: "https://www.youtube.com/watch?v=hG5lHw77Yqg",
     description: "A short film with VFX made using Unreal Engine, Blender, and After Effects. ",
-    tags: ["game dev"],
+    tags: ["game development"],
   },
   {
     id: "train-of-thoughts",
@@ -101,7 +109,7 @@ const works = [
     year: "2023",
     thumbnail: "works/train-of-thoughts/thumbnail.webp",
     description: "Short film made with Unreal Engine using virtual production techniques.",
-    tags: ["game dev"],
+    tags: ["game development"],
   },
   {
     id: "automajumper",
@@ -109,7 +117,7 @@ const works = [
     year: "2023",
     thumbnail: "works/automajumper/thumbnail.webp",
     description: "A Unity-developed video game.",
-    tags: ["game dev"],
+    tags: ["game development"],
   },
 ];
 

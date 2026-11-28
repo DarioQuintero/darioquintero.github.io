@@ -75,7 +75,7 @@ const works = [
     id: "ahn-chill-room",
     title: "AHN Chill Room: Pocket Edition",
     year: "2025",
-    thumbnail: "works/ahn-chill-room/thumbnail.png",
+    thumbnail: "works/ahn-chill-room/thumbnail.webp",
     description: "Unity Game Development",
     tags: ["game dev"],
   },

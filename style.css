@@ -131,6 +131,7 @@
   --space-m:  2rem;
   --space-l:  4rem;
 
+
   --edge: 5rem;         /* left/right page margin: header, content
                            and work pages all line up with it */
   --max-width: 1020px;  /* width of the centered column (bio) */
@@ -191,6 +192,8 @@ main.bio {
   align-items: center;                 /* menu lined up with the middle of the logo */
   padding: var(--space-s) var(--edge);
   border-top: 1px solid var(--line);   /* the line across the top of the sketch */
+  /* Thin gray line along the bottom, between the page margins */
+  background: linear-gradient(#bbb, #bbb) bottom / calc(100% - 2 * var(--edge)) 2px no-repeat;
 
 }
 
@@ -216,7 +219,8 @@ main.home {
   gap: var(--space-m);                 /* space between the text column and the scratcher */
   align-items: start;
   align-content: start;               /* the row is as tall as the scratcher, even if the window is taller */
-  padding-top: var(--space-s);         /* space below the header */
+  padding-top: var(--space-s);         /* space below the header: same on every page */
+  padding-bottom: var(--space-s);      /* small, so the page fits the window without scrolling */
 }
 .intro-text p { margin: 0 0 var(--space-s); }   /* space below each paragraph */
 .intro-text a { color: revert; text-decoration: underline; }   /* normal blue/purple links */
@@ -244,10 +248,12 @@ main.home {
   grid-column: 2;         /* on the right */
   grid-row: 1;
   justify-self: end;     /* centered in the space right of the text */
-  /* As wide as the space allows, but never taller than the window.
+  /* As wide as the space allows, but short enough that the whole page fits
+     in the window with no scrolling. 7rem = the header plus the space above
+     and below the scratcher; raise it if you make the header taller.
      --scratcher-aspect (width / height) is set by scratcher.js from the
      number of rows and columns. */
-  width: min(100%, calc((100vh - 8rem) * var(--scratcher-aspect, 2)));
+  width: min(100%, calc((100vh - 7rem) * var(--scratcher-aspect, 2)));
 }
 
 /* ── Scratcher ──────────────────────────────────────────────── */
@@ -330,7 +336,7 @@ main.home {
 
 /* ── Work grid ──────────────────────────────────────────────── */
 
-.work { margin-top: var(--space-s); }   /* space between the header and "Selected Work:" */
+.work { margin-top: var(--space-s); }   /* space below the header: same on every page */
 
 .work-title {
   font-size: 1.5rem;         /* same size as your name in the header */
@@ -346,14 +352,6 @@ main.home {
   gap: var(--space-xs) var(--space-m);   /* between lines (if they wrap) : between tags */
   margin: 0 0 var(--space-m);            /* space between the tags and the grid */
   align-items: center;
-}
-/* Thin gray line running from the last tag to the right edge */
-.tag-filter::after {
-  content: "";
-  flex: 1;
-  min-width: var(--space-m);
-  height: 1px;
-  background: #bbb;                      /* color of the line */
 }
 .tag-filter button {
   font: inherit;
@@ -535,7 +533,7 @@ main.home {
    cv.html is laid out like a one-page resume, and the same page prints
    to the PDF (the @media print part at the bottom). */
 
-.cv { padding-top: var(--space-s); }
+.cv { padding-top: var(--space-s); }   /* space below the header: same on every page */
 .cv-actions { margin: 0 0 var(--space-m); }
 .cv-actions a {
   display: inline-block;

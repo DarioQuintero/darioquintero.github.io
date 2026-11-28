@@ -68,7 +68,12 @@ grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 // (e.g. 3 columns x 3 rows of square tiles = square). style.css uses this value
 // for both the scratcher's shape and its size on the page.
 const TILE_ASPECT = 1;            // width / height of one tile (1 = square, 4 / 3 = landscape)
-scratcher.parentElement.style.setProperty("--scratcher-aspect", (cols * TILE_ASPECT) / rows);
+// The white frame around the tiles (--frame in style.css, in cqw = % of the
+// scratcher's width) is counted in too, so the tiles themselves keep this shape.
+const frameValue = getComputedStyle(grid).getPropertyValue("--frame").trim();
+const frame = frameValue.endsWith("cqw") ? parseFloat(frameValue) / 100 : 0;   // share of the width
+const heightPerWidth = (rows * (1 - (cols + 1) * frame)) / (cols * TILE_ASPECT) + (rows + 1) * frame;
+scratcher.parentElement.style.setProperty("--scratcher-aspect", 1 / heightPerWidth);
 
 // ── Keeping the card for the rest of the visit ──
 // The card (which works, what's been scratched) is saved in this tab's

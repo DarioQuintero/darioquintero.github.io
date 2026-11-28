@@ -280,6 +280,7 @@ main.home {
   aspect-ratio: var(--scratcher-aspect, 2);   /* width / height, set by scratcher.js from the tile shape */
   position: relative;          /* so the grid and cover can stack on top of each other */
   overflow: hidden;            /* keep the cover's shadow inside the scratcher */
+  container-type: inline-size; /* so sizes inside can be given in cqw (% of its width) */
   --scratch-cover: #3c97d0;    /* color of the scratch-off layer */
 }
 
@@ -300,9 +301,10 @@ main.home {
   position: absolute;
   inset: 0;
   display: grid;
-  /* A thin white frame around every image: the same width at the outer
-     edge and between images. */
-  --frame: 72px;                /* width of the frame */
+  /* A white frame around every image: the same width at the outer edge
+     and between images. In cqw (1cqw = 1% of the scratcher's width), so the
+     frame and the images all scale together with the scratcher. */
+  --frame: 10.5cqw;             /* width of the frame */
   padding: var(--frame);
   gap: var(--frame);
   background: var(--bg);
@@ -671,12 +673,12 @@ main.home {
 
 @media (max-width: 800px) {
   :root { --edge: var(--space-s); }    /* slimmer page margins on phones */
-  /* Smaller header images so they fit; on very narrow screens the menu
-     moves under the logo instead of running off the edge. */
-  .site-header { flex-wrap: wrap; row-gap: var(--space-xs); }
-  .site-name img { height: 1.75rem; }
-  .site-header nav { gap: var(--space-s); }
-  .site-header nav img { height: 1.5rem; }
+  /* Smaller header images so the logo and menu fit on one row. On very
+     narrow phones they shrink further with the screen (vw = % of its width). */
+  .site-header { gap: min(var(--space-s), 2.75vw); }
+  .site-name img { height: min(1.75rem, 6.4vw); }
+  .site-header nav { gap: min(var(--space-s), 2.75vw); }
+  .site-header nav img { height: min(1.5rem, 5.5vw); }
   main.home { grid-template-columns: 1fr; gap: var(--space-m); }   /* text and photo on top, scratcher below */
   .splash { width: 100%; grid-column: auto; grid-row: auto; container-type: normal; display: block; }   /* one column on phones */
   .splash .scratcher { width: 100%; }

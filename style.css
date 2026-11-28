@@ -187,14 +187,23 @@ main.bio {
 /* ── Header ─────────────────────────────────────────────────── */
 
 .site-header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;                 /* menu lined up with the middle of the logo */
   padding: var(--space-s) var(--edge);
   border-top: 1px solid var(--line);   /* the line across the top of the sketch */
   /* Thin gray line along the bottom, between the page margins */
-  background: linear-gradient(#bbb, #bbb) bottom / calc(100% - 2 * var(--edge)) 2px no-repeat;
-
+  background: linear-gradient(#000000, #bbb) bottom / calc(100% - 2 * var(--edge)) 1px no-repeat;
+  
+}
+.site-header-line{
+  position: absolute;
+  pointer-events: none;
+  bottom: 0;
+  left: var(--edge);
+  width: calc(100% - 2 * var(--edge));
+  height: 25%;
 }
 
 .site-name { font-size: 1.5rem; }
@@ -236,12 +245,13 @@ main.home {
 }
 .intro-text p:last-of-type { margin-bottom: 0; }   /* the photo's margin sets the gap below the text */
 .intro-portrait {
-  width: 100%;           /* as wide as the text above it */
+  height: 16.5rem;        /* size of the photo: change this, and the width follows */
+  width: auto;
+  aspect-ratio: 17 / 24;  /* shape of the crop (width / height) */
+  align-self: flex-start; /* keep its own width instead of stretching to the column */
   margin-top: var(--space-s);   /* space between the text and the photo */
-  flex: 1 1 0;           /* fill the rest of the column's height */
-  height: 0;             /* (so the photo never makes the column taller than the scratcher) */
-  min-height: 10rem;     /* but never shorter than this */
   object-fit: cover;
+  object-position: right center;   /* when cropped, keep the right side (where the face is) */
 }
 
 .splash {
@@ -629,7 +639,7 @@ main.home {
   .site-header nav img { height: 1.5rem; }
   main.home { grid-template-columns: 1fr; gap: var(--space-m); }   /* text and photo on top, scratcher below */
   .splash { width: 100%; grid-column: auto; grid-row: auto; }   /* one column on phones */
-  .intro-portrait { flex: none; height: auto; }   /* natural size when stacked */
+  .intro-portrait { width: 100%; height: auto; aspect-ratio: auto; }   /* phones: full width, whole photo */
   /* Phones: text, then the scratcher, then the photo. (display: contents
      lets the text and photo be placed separately, around the scratcher.) */
   .intro-text { display: contents; }
